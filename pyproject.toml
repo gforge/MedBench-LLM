@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "llm"
+version = "0.1.0"
+description = "The MedBench LLM package for generating summaries"
+authors = ["Max Gordon <max@gforge.se>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+langchain = "^0.2.11"
+langchain-openai = "^0.1.20"
+pandas = "^2.2.2"
+openai = "^1.37.1"
+nest-asyncio = "^1.6.0"
+pydantic = "^2.8.2"
+python-dotenv = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
