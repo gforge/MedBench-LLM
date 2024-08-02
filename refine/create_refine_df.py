@@ -1,11 +1,13 @@
 import pandas as pd
 from langchain_core.language_models import BaseChatModel
-from prompting import CaseWithSubsections
+
+from helpers.case import Case
+from helpers.case_with_subsections import CaseWithSubsections
 
 from .refine import prompt_refine
 
 
-def create_refine_df(case: CaseWithSubsections, n: int, llm: BaseChatModel):
+def create_refine_df(case: Case, n: int, llm: BaseChatModel):
     """
     Creates a DataFrame containing the sum of refined prompts for a given case.
 
@@ -17,8 +19,9 @@ def create_refine_df(case: CaseWithSubsections, n: int, llm: BaseChatModel):
     Returns:
         pd.DataFrame: A DataFrame containing the summarization of refined prompts.
     """
+    extended_case = CaseWithSubsections(case)
 
-    refine_sum = [prompt_refine(case=case, llm=llm) for _ in range(n)]
+    refine_sum = [prompt_refine(case=extended_case, llm=llm) for _ in range(n)]
     df_refine = pd.DataFrame([list(refine_sum)])
     df_refine.index = ["refine_sum"]
 

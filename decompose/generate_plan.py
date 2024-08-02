@@ -44,8 +44,17 @@ prompt_plan_generate = read_decompose_prompt('plan_generate')
 prompt_plan_extract = read_decompose_prompt('plan_extract')
 
 
-# Function to generate plan
 def generate_plan(plan, llm: BaseChatModel):
+    """
+    Generates a discharge plan based on the given plan and language model.
+
+    Args:
+        plan (str): The plan to generate a discharge plan from.
+        llm (BaseChatModel): The language model used for generating the discharge plan.
+
+    Returns:
+        str: The generated discharge plan.
+    """
 
     plan_extract_template = ChatPromptTemplate.from_template(
         prompt_plan_extract)

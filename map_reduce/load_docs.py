@@ -1,6 +1,6 @@
 from langchain.docstore.document import Document
 
-from prompting.CaseWithSubsections import CaseWithSubsections
+from helpers.case_with_subsections import CaseWithSubsections
 
 
 def load_docs(case: CaseWithSubsections) -> list[Document]:

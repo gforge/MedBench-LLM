@@ -1,8 +1,8 @@
-from datetime import date, timedelta
 import re
+from datetime import date, timedelta
 
-from .NoteSection import NoteSection
-from .Case import Case, LabTest, Medication
+from .case import Case, LabTest, Medication
+from .note_section import NoteSection
 
 
 class CaseWithSubsections():

@@ -1,14 +1,14 @@
 import pandas as pd
 from langchain_core.language_models import BaseChatModel
-from prompting.read_data import Case
+
+from helpers.case_with_subsections import CaseWithSubsections
+from helpers.read_data import Case
 
 from .generate_discharge_meds import generate_discharge_meds
 from .generate_hospital_course import generate_hospital_course
+from .generate_operation_section import generate_operation_section
 from .generate_plan import generate_plan
 from .generate_section_1 import generate_section_1
-from .generate_operation_section import generate_operation_section
-
-from ..CaseWithSubsections import CaseWithSubsections
 
 
 def single_section(case: CaseWithSubsections, llm: BaseChatModel) -> str:
@@ -23,15 +23,13 @@ def single_section(case: CaseWithSubsections, llm: BaseChatModel) -> str:
         str: The combined sections as a single string.
     """
     section_1_notes = generate_section_1(
-        day1 = case.first_day,
-        progress_note =case.progress,
+        day1=case.first_day,
+        progress=case.progress,
         llm=llm,
     )
 
-    operation_note_section = generate_operation_section(
-        operation = case.surgery,
-        llm=llm
-    )
+    operation_note_section = generate_operation_section(operation=case.surgery,
+                                                        llm=llm)
 
     hospital_course_section = generate_hospital_course(
         day1=case.first_day,
@@ -50,8 +48,8 @@ def single_section(case: CaseWithSubsections, llm: BaseChatModel) -> str:
     )
 
     return "\n\n".join([
-        section_1_notes, operation_note_section, hospital_course_section, plan_section,
-        medication_section
+        section_1_notes, operation_note_section, hospital_course_section,
+        plan_section, medication_section
     ])
 
 
@@ -69,12 +67,12 @@ def combine_all_sections(case: Case, llm: BaseChatModel, n: int):
         pd.DataFrame: A DataFrame containing the combined outputs of the
         `single_section` function.
     """
-    extendedCase = CaseWithSubsections(case)
+    extended_case = CaseWithSubsections(case)
 
     decompose_list_outputs = []
 
     for _ in range(n):
-        single_output = single_section(extendedCase, llm)
+        single_output = single_section(extended_case, llm)
 
         decompose_list_outputs.append(single_output)
 

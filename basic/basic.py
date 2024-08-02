@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 import pandas as pd
 from langchain_core.language_models import BaseChatModel
@@ -6,17 +7,41 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import RunnableSerializable
 
-from .read_prompt import read_dual_prompt, read_single_prompt
+from helpers.read_prompt import read_dual_prompt, read_single_prompt
+
+current_file_folder = Path(__file__).parent / 'prompts'
+basic_dual_prompt = read_dual_prompt(
+    'basic',
+    prompt_path=current_file_folder,
+)
+single_basic_prompt = read_single_prompt(
+    'basic_both',
+    prompt_path=current_file_folder,
+)
 
 
 @dataclass
 class ChainTypes:
+    """
+    ChainTypes class represents the types of chains in the MedBench LLM basic module.
+
+    Attributes:
+        dual (RunnableSerializable[dict, str]): Represents a dual chain.
+        single (RunnableSerializable[dict, str]): Represents a single chain.
+    """
     dual: RunnableSerializable[dict, str]
     single: RunnableSerializable[dict, str]
 
 
 @dataclass
 class TypesOutput:
+    """
+    Represents the output types.
+
+    Attributes:
+        single (str): The single output type.
+        dual (str): The dual output type.
+    """
     single: str
     dual: str
 
@@ -87,11 +112,17 @@ def create_multiple_basic_prompts(
     return convert_to_df(outputs)
 
 
-basic_dual_prompt = read_dual_prompt('basic')
-single_basic_prompt = read_single_prompt('basic_both')
-
-
 def basic_chain(llm: BaseChatModel) -> ChainTypes:
+    """
+    Executes a basic chain of prompts using the given language model.
+
+    Args:
+        llm (BaseChatModel): The language model used for generating responses.
+
+    Returns:
+        ChainTypes: An object containing the dual and single chains of prompts.
+    """
+
     output_parser = StrOutputParser()
 
     return ChainTypes(

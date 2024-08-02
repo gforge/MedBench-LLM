@@ -2,8 +2,9 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from prompting.CaseWithSubsections import CaseWithSubsections
-from prompting.map_reduce.load_docs import load_docs
+
+from helpers.case_with_subsections import CaseWithSubsections
+from map_reduce.load_docs import load_docs
 
 from .read_refine_prompt import read_refine_prompt
 

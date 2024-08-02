@@ -1,8 +1,7 @@
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
-from langchain_core.retrievers import RunnableSerializable
 from langchain_core.language_models import BaseChatModel
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
 from .read_decompose_prompt import read_decompose_prompt
 
@@ -55,66 +54,81 @@ prompt_op_sum = read_decompose_prompt('op_sum')
 prompt_combine = read_decompose_prompt('combine')
 
 
-# Generate the hospital course
 def generate_hospital_course(
     day1: str,
     progress: str,
     operation: str,
     progress_lab: str,
     llm: BaseChatModel,
-):
+) -> str:
+    """
+    Generates a hospital course based on the provided inputs.
+
+    Args:
+        day1 (str): The day 1 notes.
+        progress (str): The progress notes.
+        operation (str): The operation notes.
+        progress_lab (str): The progress lab notes.
+        llm (BaseChatModel): The chat model used for generating the hospital course.
+
+    Returns:
+        str: The generated hospital course.
+
+    Raises:
+        None
+    """
 
     output_parser = StrOutputParser()
-
-    ED_extract_template = ChatPromptTemplate.from_template(prompt_ED_extract)
-
     output_parser_json = JsonOutputFunctionsParser()
 
-    ed_extract_chain = ED_extract_template | llm.bind(
-        function_call={"name": "Extraction_hosp_course"},
-        functions=extracted_functions_hosp_course) | output_parser_json
+    # Chain for extracting ED notes
+    ed_extract_chain = (ChatPromptTemplate.from_template(prompt_ED_extract)
+                        | llm.bind(
+                            function_call={"name": "Extraction_hosp_course"},
+                            functions=extracted_functions_hosp_course)
+                        | output_parser_json)
 
-    ED_generate_template = ChatPromptTemplate.from_template(prompt_ED_generate)
-
-    ED_extract_generate_chain = ({
+    # Chain for generating ED notes
+    ed_generate_chain = ({
         "Extracted_ED_Notes": ed_extract_chain
     }
-                                 | ED_generate_template
-                                 | llm
-                                 | StrOutputParser())
+                         | ChatPromptTemplate.from_template(prompt_ED_generate)
+                         | llm
+                         | output_parser)
 
-    progress_sum_template = ChatPromptTemplate.from_template(
-        prompt_progress_sum)
+    # Chains for progress summary, lab trends, and operation summary
+    progress_sum_chain = (ChatPromptTemplate.from_template(prompt_progress_sum)
+                          | llm
+                          | output_parser)
 
-    progress_sum_chain = progress_sum_template | llm | output_parser
+    lab_trend_chain = (ChatPromptTemplate.from_template(prompt_lab_trend)
+                       | llm
+                       | output_parser)
 
-    lab_trend_template = ChatPromptTemplate.from_template(prompt_lab_trend)
+    op_sum_chain = (ChatPromptTemplate.from_template(prompt_op_sum)
+                    | llm
+                    | output_parser)
 
-    lab_trend_chain = lab_trend_template | llm | output_parser
-
-    op_sum_template = ChatPromptTemplate.from_template(prompt_op_sum)
-
-    op_sum_chain = op_sum_template | llm | output_parser
-
-    combine_template = ChatPromptTemplate.from_template(prompt_combine)
-
-    ED_extract_generate_chain: RunnableSerializable[dict, str] = (
+    # Combine all the parts into the final hospital course
+    final_hospital_course_chain = (
         {
-            "initial_hosp_course": ED_extract_generate_chain,
+            "initial_hosp_course": ed_generate_chain,
             "progress_sum": progress_sum_chain,
             "lab_trends": lab_trend_chain,
             "op_sum": op_sum_chain
         }
-        | combine_template
+        | ChatPromptTemplate.from_template(prompt_combine)
         | llm
-        | StrOutputParser())
+        | output_parser)
 
+    # Arguments for invoking the final chain
     args = {
         "ED_Notes": day1,
         "Progress_Notes": progress,
         "Progress_Lab_Notes": progress_lab,
         "Op_Notes": operation
     }
-    discharge_hosp_course = ED_extract_generate_chain.invoke(args)
+
+    discharge_hosp_course = final_hospital_course_chain.invoke(args)
 
     return discharge_hosp_course

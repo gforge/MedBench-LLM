@@ -43,6 +43,16 @@ prompt_meds_generate = read_decompose_prompt('meds_generate')
 
 
 def generate_discharge_meds(meds, llm: BaseChatModel):
+    """
+    Generates discharge medications based on the given input medications and a language model.
+
+    Args:
+        meds (list): A list of input medications.
+        llm (BaseChatModel): The language model used for generating discharge medications.
+
+    Returns:
+        dict: A dictionary containing the generated discharge medications.
+    """
     meds_extract_template = ChatPromptTemplate.from_template(
         prompt_meds_extract)
 

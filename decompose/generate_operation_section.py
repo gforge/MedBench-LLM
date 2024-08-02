@@ -1,14 +1,12 @@
 # Function to generate section 1
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
 from langchain_core.language_models import BaseChatModel
 
-from .extracted_structure import extracted_functions
-from .extract_text_first_section import extract_first_section_only
 from .read_decompose_prompt import read_decompose_prompt
 
-prompt_operation_notes_extract = read_decompose_prompt('operation_details_extact')
+prompt_operation_notes_extract = read_decompose_prompt(
+    'operation_details_extact')
 
 
 def generate_operation_section(operation: str, llm: BaseChatModel):
@@ -24,10 +22,11 @@ def generate_operation_section(operation: str, llm: BaseChatModel):
     """
     output_parser = StrOutputParser()
 
-    op_details_extract_template = ChatPromptTemplate.from_template(prompt_operation_notes_extract)
+    op_details_extract_template = ChatPromptTemplate.from_template(
+        prompt_operation_notes_extract)
 
-    op_details_extract_chain = op_details_extract_template | llm | StrOutputParser()
+    op_details_extract_chain = op_details_extract_template | llm | output_parser
 
     op_details = op_details_extract_chain.invoke({"note": operation})
-    
+
     return op_details
