@@ -16,8 +16,26 @@ nest-asyncio = "^1.6.0"
 pydantic = "^2.8.2"
 python-dotenv = "^1.0.1"
 jupyter = "^1.0.0"
+flake8 = "^7.1.0"
+pylint = "^3.2.6"
+flake8-pyproject = "^1.2.3"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pylint.'MESSAGES CONTROL']
+max-line-length = 120
+disable = """
+   missing-module-docstring,
+   broad-exception-caught
+"""
+
+[tool.flake8]
+max-line-length=120
+per-file-ignores = [
+    '__init__.py:F401',
+]
+count = true
