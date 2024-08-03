@@ -3,6 +3,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import RunnableSerializable
+
+from helpers import Case
 from .read_decompose_prompt import read_decompose_prompt
 
 # Plan
@@ -44,7 +46,7 @@ prompt_plan_generate = read_decompose_prompt('plan_generate')
 prompt_plan_extract = read_decompose_prompt('plan_extract')
 
 
-def generate_plan(plan, llm: BaseChatModel):
+def generate_plan(case: Case, llm: BaseChatModel):
     """
     Generates a discharge plan based on the given plan and language model.
 
@@ -76,6 +78,7 @@ def generate_plan(plan, llm: BaseChatModel):
         | llm
         | StrOutputParser())
 
-    discharge_plan = plan_extract_generate_chain.invoke({"Plan_Notes": plan})
+    discharge_plan = plan_extract_generate_chain.invoke(
+        {"Plan_Notes": case.last_surgery_and_progress_notes})
 
     return discharge_plan

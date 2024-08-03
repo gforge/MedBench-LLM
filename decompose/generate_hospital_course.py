@@ -3,6 +3,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from helpers.case import Case
+
 from .read_decompose_prompt import read_decompose_prompt
 
 # combine progress notes and lab values
@@ -55,20 +57,14 @@ prompt_combine = read_decompose_prompt('combine')
 
 
 def generate_hospital_course(
-    day1: str,
-    progress: str,
-    operation: str,
-    progress_lab: str,
+    case: Case,
     llm: BaseChatModel,
 ) -> str:
     """
     Generates a hospital course based on the provided inputs.
 
     Args:
-        day1 (str): The day 1 notes.
-        progress (str): The progress notes.
-        operation (str): The operation notes.
-        progress_lab (str): The progress lab notes.
+        case (Case): The case object containing subsections.
         llm (BaseChatModel): The chat model used for generating the hospital course.
 
     Returns:
@@ -123,10 +119,10 @@ def generate_hospital_course(
 
     # Arguments for invoking the final chain
     args = {
-        "ED_Notes": day1,
-        "Progress_Notes": progress,
-        "Progress_Lab_Notes": progress_lab,
-        "Op_Notes": operation
+        "ED_Notes": case.first_day_notes,
+        "Progress_Notes": case.progress_notes,
+        "Progress_Lab_Notes": case.get_progress_notes_and_lab(),
+        "Op_Notes": case.surgery,
     }
 
     discharge_hosp_course = final_hospital_course_chain.invoke(args)

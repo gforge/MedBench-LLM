@@ -21,34 +21,18 @@ def single_section(case: Case, llm: BaseChatModel) -> str:
     Returns:
         str: The combined sections as a single string.
     """
-    section_1_notes = generate_section_1(
-        day1=case.first_day,
-        progress=case.progress,
-        llm=llm,
-    )
-
-    operation_note_section = generate_operation_section(operation=case.surgery,
-                                                        llm=llm)
-
-    hospital_course_section = generate_hospital_course(
-        day1=case.first_day,
-        progress=case.progress,
-        operation=case.surgery,
-        progress_lab=case.progress,
-        llm=llm,
-    )
-    plan_section = generate_plan(
-        plan=case.last_surgery_and_progress_notes,
-        llm=llm,
-    )
-    medication_section = generate_discharge_meds(
-        meds=case.medications,
-        llm=llm,
-    )
+    section_1_notes = generate_section_1(case=case, llm=llm)
+    operation_note_section = generate_operation_section(case=case, llm=llm)
+    hospital_course_section = generate_hospital_course(case=case, llm=llm)
+    plan_section = generate_plan(case=case, llm=llm)
+    medication_section = generate_discharge_meds(case=case, llm=llm)
 
     return "\n\n".join([
-        section_1_notes, operation_note_section, hospital_course_section,
-        plan_section, medication_section
+        section_1_notes,
+        operation_note_section,
+        hospital_course_section,
+        plan_section,
+        medication_section,
     ])
 
 

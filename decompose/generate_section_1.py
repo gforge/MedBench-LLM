@@ -3,6 +3,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from helpers import Case
+
 from .read_decompose_prompt import read_decompose_prompt
 
 prompt_first_day_summarise = read_decompose_prompt('first_day_summarise')
@@ -11,13 +13,12 @@ prompt_extact_progress_sec_diagnosis = read_decompose_prompt(
 prompt_generate_section_1 = read_decompose_prompt('section1_generate')
 
 
-def generate_section_1(day1: str, progress: str, llm: BaseChatModel):
+def generate_section_1(case: Case, llm: BaseChatModel):
     """
     Generates section 1 of the discharge summary based on the day 1 note and progress note.
 
     Args:
-        day 1 (str): The day 1 note to generate section 1 from.
-        progress (str): The progress note that provide additional secondary diagnosis to be included in section 1.
+        case (Case): The case object containing day 1 notes and progress notes.
         llm (BaseChatModel): The language model used for generating the discharge summary.
 
     Returns:
@@ -50,8 +51,10 @@ def generate_section_1(day1: str, progress: str, llm: BaseChatModel):
 
     # Run
     discharge_sum_1 = section_1_summary_chain.invoke({
-        "note": day1,
-        "progress_note": progress
+        "note":
+        case.first_day_notes,
+        "progress_note":
+        case.progress_notes,
     })
 
     return discharge_sum_1

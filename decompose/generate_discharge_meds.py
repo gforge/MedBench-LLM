@@ -4,6 +4,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import RunnableSerializable
 
+from helpers import Case
+
 from .read_decompose_prompt import read_decompose_prompt
 
 # Discharge Medications
@@ -42,7 +44,7 @@ prompt_meds_extract = read_decompose_prompt('meds_extract')
 prompt_meds_generate = read_decompose_prompt('meds_generate')
 
 
-def generate_discharge_meds(meds, llm: BaseChatModel):
+def generate_discharge_meds(case: Case, llm: BaseChatModel):
     """
     Generates discharge medications based on the given input medications and a language model.
 
@@ -75,6 +77,6 @@ def generate_discharge_meds(meds, llm: BaseChatModel):
         | StrOutputParser())
 
     discharge_meds = meds_extract_generate_chain.invoke(
-        {"Medication_details": meds})
+        {"Medication_details": case.all_medications})
 
     return discharge_meds
