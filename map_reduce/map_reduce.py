@@ -2,7 +2,7 @@ from langchain.chains.summarize import load_summarize_chain
 from langchain_core.language_models import BaseChatModel
 from langchain_core.prompts import ChatPromptTemplate
 
-from helpers import case_with_subsections
+from helpers import case
 
 from .load_docs import load_docs
 from .read_mapreduce_prompt import read_map_reduce_prompt
@@ -11,7 +11,7 @@ map_prompt = read_map_reduce_prompt('map')
 combine_prompt = read_map_reduce_prompt('combine')
 
 
-def mapreduce(case: case_with_subsections, llm: BaseChatModel) -> str:
+def mapreduce(case: case, llm: BaseChatModel) -> str:
     """
     Summarizes the input case using the map-reduce method.
 

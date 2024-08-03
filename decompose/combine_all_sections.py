@@ -1,8 +1,7 @@
 import pandas as pd
 from langchain_core.language_models import BaseChatModel
 
-from helpers.case_with_subsections import CaseWithSubsections
-from helpers.read_data import Case
+from helpers import Case
 
 from .generate_discharge_meds import generate_discharge_meds
 from .generate_hospital_course import generate_hospital_course
@@ -11,7 +10,7 @@ from .generate_plan import generate_plan
 from .generate_section_1 import generate_section_1
 
 
-def single_section(case: CaseWithSubsections, llm: BaseChatModel) -> str:
+def single_section(case: Case, llm: BaseChatModel) -> str:
     """
     Combines different sections of a medical case into a single string.
 
@@ -67,12 +66,10 @@ def combine_all_sections(case: Case, llm: BaseChatModel, n: int):
         pd.DataFrame: A DataFrame containing the combined outputs of the
         `single_section` function.
     """
-    extended_case = CaseWithSubsections(case)
-
     decompose_list_outputs = []
 
     for _ in range(n):
-        single_output = single_section(extended_case, llm)
+        single_output = single_section(case, llm)
 
         decompose_list_outputs.append(single_output)
 
