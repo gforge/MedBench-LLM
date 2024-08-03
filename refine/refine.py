@@ -3,7 +3,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
-from helpers.case_with_subsections import CaseWithSubsections
+from helpers import Case
 from map_reduce.load_docs import load_docs
 
 from .read_refine_prompt import read_refine_prompt
@@ -13,8 +13,10 @@ refine_template_clindoc = read_refine_prompt('clindoc')
 generate_refine_sum_prompt = read_refine_prompt('summarize')
 
 
-def prompt_refine(case: CaseWithSubsections, llm: BaseChatModel):
-
+def prompt_refine(case: Case, llm: BaseChatModel):
+    """
+    Generate a prompt for refining the hospital course.
+    """
     docs = load_docs(case)
 
     output_parser = StrOutputParser()
