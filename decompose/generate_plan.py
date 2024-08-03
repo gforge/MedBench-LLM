@@ -1,11 +1,9 @@
-from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
 from langchain_core.language_models import BaseChatModel
-from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.retrievers import RunnableSerializable
 
 from helpers import Case
-from .read_decompose_prompt import read_decompose_prompt
+from .read_decompose_prompt import read_decompose_prompt as read
 
 # Plan
 # Instructions on when follow up-visits are planned. Found in the progress notes.
@@ -42,8 +40,8 @@ extracted_functions_plan = [{
     }
 }]
 
-prompt_plan_generate = read_decompose_prompt('plan_generate')
-prompt_plan_extract = read_decompose_prompt('plan_extract')
+_prompt_plan_generate = read('plan_generate')
+_prompt_plan_extract = read('plan_extract')
 
 
 def generate_plan(case: Case, llm: BaseChatModel):
@@ -59,24 +57,19 @@ def generate_plan(case: Case, llm: BaseChatModel):
     """
 
     plan_extract_template = ChatPromptTemplate.from_template(
-        prompt_plan_extract)
+        _prompt_plan_extract)
 
-    output_parser_json = JsonOutputFunctionsParser()
-
-    plan_extract_chain = plan_extract_template | llm.bind(
-        function_call={"name": "Extraction_Plan"},
-        functions=extracted_functions_plan) | output_parser_json
+    plan_extract_chain = plan_extract_template | llm | JsonOutputParser()
 
     plan_generate_template = ChatPromptTemplate.from_template(
-        prompt_plan_generate)
+        _prompt_plan_generate)
 
-    plan_extract_generate_chain: RunnableSerializable[dict, str] = (
-        {
-            "Extracted_Plan_Notes": plan_extract_chain
-        }
-        | plan_generate_template
-        | llm
-        | StrOutputParser())
+    plan_extract_generate_chain = ({
+        "extracted_plan": plan_extract_chain
+    }
+                                   | plan_generate_template
+                                   | llm
+                                   | StrOutputParser())
 
     discharge_plan = plan_extract_generate_chain.invoke(
         {"Plan_Notes": case.last_surgery_and_progress_notes})

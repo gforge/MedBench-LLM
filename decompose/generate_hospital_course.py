@@ -1,11 +1,10 @@
-from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from helpers.case import Case
 
-from .read_decompose_prompt import read_decompose_prompt
+from .read_decompose_prompt import read_decompose_prompt as read
 
 # combine progress notes and lab values
 # - Trends in lab tests. For example, a sudden rise in CRP (C-reactive protein) or a drop in Hb (haemoglobin)
@@ -23,7 +22,7 @@ from .read_decompose_prompt import read_decompose_prompt
 # Hospital course: [admission reasons, clinical findings, initiated intervention and treatment]
 
 # Extract the relevant findings from the notes in a structured output
-extracted_functions_hosp_course = [{
+_extracted_functions_hosp_course = [{
     "name": "Extraction_hosp_course",
     "description": "All extracted information from the documents",
     "parameters": {
@@ -48,12 +47,9 @@ extracted_functions_hosp_course = [{
     }
 }]
 
-prompt_ED_extract = read_decompose_prompt('ED_extract')
-prompt_ED_generate = read_decompose_prompt('ED_generate')
-prompt_progress_sum = read_decompose_prompt('progress_sum')
-prompt_lab_trend = read_decompose_prompt('lab_trend')
-prompt_op_sum = read_decompose_prompt('op_sum')
-prompt_combine = read_decompose_prompt('combine')
+_prompt_d1_sum = read('hosp_d1_sum')
+_prompt_progress_sum = read('hosp_progress_sum')
+_prompt_combine = read('hosp_combine')
 
 
 def generate_hospital_course(
@@ -74,57 +70,30 @@ def generate_hospital_course(
         None
     """
 
-    output_parser = StrOutputParser()
-    output_parser_json = JsonOutputFunctionsParser()
+    d1_extract_template = ChatPromptTemplate.from_template(_prompt_d1_sum)
 
-    # Chain for extracting ED notes
-    ed_extract_chain = (ChatPromptTemplate.from_template(prompt_ED_extract)
-                        | llm.bind(
-                            function_call={"name": "Extraction_hosp_course"},
-                            functions=extracted_functions_hosp_course)
-                        | output_parser_json)
+    d1_extract_chain = d1_extract_template | llm | StrOutputParser()
 
-    # Chain for generating ED notes
-    ed_generate_chain = ({
-        "Extracted_ED_Notes": ed_extract_chain
+    progress_sum_template = ChatPromptTemplate.from_template(
+        _prompt_progress_sum)
+
+    progress_sum_chain = progress_sum_template | llm | StrOutputParser()
+
+    combine_template = ChatPromptTemplate.from_template(_prompt_combine)
+
+    hospital_course_generator = ({
+        "day1_summary": d1_extract_chain,
+        "progress_summary": progress_sum_chain
     }
-                         | ChatPromptTemplate.from_template(prompt_ED_generate)
-                         | llm
-                         | output_parser)
-
-    # Chains for progress summary, lab trends, and operation summary
-    progress_sum_chain = (ChatPromptTemplate.from_template(prompt_progress_sum)
-                          | llm
-                          | output_parser)
-
-    lab_trend_chain = (ChatPromptTemplate.from_template(prompt_lab_trend)
-                       | llm
-                       | output_parser)
-
-    op_sum_chain = (ChatPromptTemplate.from_template(prompt_op_sum)
-                    | llm
-                    | output_parser)
-
-    # Combine all the parts into the final hospital course
-    final_hospital_course_chain = (
-        {
-            "initial_hosp_course": ed_generate_chain,
-            "progress_sum": progress_sum_chain,
-            "lab_trends": lab_trend_chain,
-            "op_sum": op_sum_chain
-        }
-        | ChatPromptTemplate.from_template(prompt_combine)
-        | llm
-        | output_parser)
-
+                                 | combine_template
+                                 | llm
+                                 | StrOutputParser())
     # Arguments for invoking the final chain
     args = {
-        "ED_Notes": case.first_day_notes,
-        "Progress_Notes": case.progress_notes,
-        "Progress_Lab_Notes": case.get_progress_notes_and_lab(),
-        "Op_Notes": case.surgery,
+        "d1_note": case.first_day_notes,
+        "progress_note": case.progress_notes,
     }
 
-    discharge_hosp_course = final_hospital_course_chain.invoke(args)
+    discharge_hosp_course = hospital_course_generator.invoke(args)
 
     return discharge_hosp_course

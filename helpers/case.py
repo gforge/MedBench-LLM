@@ -180,7 +180,10 @@ class Case(RawCase):
         if isinstance(day, datetime):
             day = self.get_all_dates().index(day)
 
-        day = day - 1  # 0-indexed
+        # If day is negative, it is counted from the last day
+        if day < 0:
+            day = self.days + day
+
         assert day >= 0, "Day should be greater than or equal to 0"
         assert day < self.days, f"Day should be less than {self.days}"
         return self.daily_data[day]

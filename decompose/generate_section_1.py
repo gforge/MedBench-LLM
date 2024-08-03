@@ -5,12 +5,11 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from helpers import Case
 
-from .read_decompose_prompt import read_decompose_prompt
+from .read_decompose_prompt import read_decompose_prompt as read
 
-prompt_first_day_summarise = read_decompose_prompt('first_day_summarise')
-prompt_extact_progress_sec_diagnosis = read_decompose_prompt(
-    'progress_extract_sec_diagnosis')
-prompt_generate_section_1 = read_decompose_prompt('section1_generate')
+_prompt_ed_extract = read('s1_ED_extract')
+_prompt_secondary_diagnosis_extract = read('s1_sec_diagnosis_extract')
+_prompt_generate_section_1 = read('s1_generate')
 
 
 def generate_section_1(case: Case, llm: BaseChatModel):
@@ -24,37 +23,29 @@ def generate_section_1(case: Case, llm: BaseChatModel):
     Returns:
         str: The generated section 1 of the discharge summary.
     """
-    output_parser = StrOutputParser()
+    ed_extract_template = ChatPromptTemplate.from_template(_prompt_ed_extract)
 
-    first_day_summarise_template = ChatPromptTemplate.from_template(
-        prompt_first_day_summarise)
+    ed_extract_chain = ed_extract_template | llm | StrOutputParser()
 
-    first_day_summarise_chain = first_day_summarise_template | llm | output_parser
+    progress_sec_diagnosis_prompt = ChatPromptTemplate.from_template(
+        _prompt_secondary_diagnosis_extract)
 
-    extact_progress_sec_diagnosis_template = ChatPromptTemplate.from_template(
-        prompt_extact_progress_sec_diagnosis)
-
-    progress_sec_diagnosis_chain = extact_progress_sec_diagnosis_template | llm | StrOutputParser(
+    progress_sec_diagnosis_chain = progress_sec_diagnosis_prompt | llm | StrOutputParser(
     )
 
-    section_1_sum_template = ChatPromptTemplate.from_template(
-        prompt_generate_section_1)
+    section_1_sum_prompt = ChatPromptTemplate.from_template(
+        _prompt_generate_section_1)
 
     section_1_summary_chain = (
         {
-            "previous_information": first_day_summarise_chain,
+            "previous_information": ed_extract_chain,
             "updated_secondary_diagnosis_list": progress_sec_diagnosis_chain
         }
-        | section_1_sum_template
+        | section_1_sum_prompt
         | llm
         | StrOutputParser())
 
-    # Run
-    discharge_sum_1 = section_1_summary_chain.invoke({
-        "note":
-        case.first_day_notes,
-        "progress_note":
-        case.progress_notes,
-    })
+    args = {"note": case.first_day_notes, "progress_note": case.progress_notes}
+    discharge_sum_1 = section_1_summary_chain.invoke(args)
 
     return discharge_sum_1

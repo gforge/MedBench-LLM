@@ -1,12 +1,10 @@
-from langchain.output_parsers.openai_functions import JsonOutputFunctionsParser
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.retrievers import RunnableSerializable
 
 from helpers import Case
 
-from .read_decompose_prompt import read_decompose_prompt
+from .read_decompose_prompt import read_decompose_prompt as read
 
 # Discharge Medications
 # Medications used during the patient’s hospital stay. Found in separate list of medications.
@@ -40,8 +38,7 @@ extracted_medication = [{
     }
 }]
 
-prompt_meds_extract = read_decompose_prompt('meds_extract')
-prompt_meds_generate = read_decompose_prompt('meds_generate')
+_prompt_meds_extract = read('meds_extract')
 
 
 def generate_discharge_meds(case: Case, llm: BaseChatModel):
@@ -56,27 +53,14 @@ def generate_discharge_meds(case: Case, llm: BaseChatModel):
         dict: A dictionary containing the generated discharge medications.
     """
     meds_extract_template = ChatPromptTemplate.from_template(
-        prompt_meds_extract)
+        _prompt_meds_extract)
 
-    output_parser_json = JsonOutputFunctionsParser()
+    meds_extract_chain = meds_extract_template | llm | StrOutputParser()
 
-    meds_extract_chain = (meds_extract_template
-                          | llm.bind(function_call={"name": "Extraction_Meds"},
-                                     functions=extracted_medication)
-                          | output_parser_json)
+    args = {
+        "initial_medication_list": case.get_day(0).get_medications_list(),
+        "latest_medication_list": case.get_day(-1).get_medications_list(),
+    }
+    meds_changes = meds_extract_chain.invoke(args)
 
-    meds_generate_template = ChatPromptTemplate.from_template(
-        prompt_meds_generate)
-
-    meds_extract_generate_chain: RunnableSerializable[dict, str] = (
-        {
-            "Extracted_medication_details": meds_extract_chain
-        }
-        | meds_generate_template
-        | llm
-        | StrOutputParser())
-
-    discharge_meds = meds_extract_generate_chain.invoke(
-        {"Medication_details": case.all_medications})
-
-    return discharge_meds
+    return meds_changes

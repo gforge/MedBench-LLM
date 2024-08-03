@@ -5,10 +5,9 @@ from langchain_core.language_models import BaseChatModel
 
 from helpers import Case
 
-from .read_decompose_prompt import read_decompose_prompt
+from .read_decompose_prompt import read_decompose_prompt as read
 
-prompt_operation_notes_extract = read_decompose_prompt(
-    'operation_details_extact')
+prompt_operation_notes_extract = read('op_details_extact')
 
 
 def generate_operation_section(case: Case, llm: BaseChatModel):
