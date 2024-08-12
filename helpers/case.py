@@ -82,12 +82,6 @@ class Case(RawCase):
             if typename.match(section.type)
         ]
 
-    def __extract_progress_note(self, idx: int):
-        notes = self.__extract_progress_notes()
-        if idx < 0:
-            idx = len(notes) + idx
-        return notes[idx]
-
     @property
     def progress_notes(self) -> str:
         """
