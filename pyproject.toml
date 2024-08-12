@@ -21,6 +21,9 @@ pylint = "^3.2.6"
 flake8-pyproject = "^1.2.3"
 
 
+[tool.poetry.group.dev.dependencies]
+nbstripout = "^0.7.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
