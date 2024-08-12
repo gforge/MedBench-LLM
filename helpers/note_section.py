@@ -130,6 +130,14 @@ class NoteSection:
         """
         return (self.date - other.date).days
 
+    @property
+    def datetime(self) -> datetime:
+        """
+        Returns the datetime of the note.
+        """
+        return datetime.combine(self.date,
+                                datetime.strptime(self.time, "%H:%M").time())
+
     def __repr__(self) -> str:
         """
         Returns a string representation of the NoteSection.

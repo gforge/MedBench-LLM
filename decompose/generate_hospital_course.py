@@ -91,7 +91,7 @@ def generate_hospital_course(
     # Arguments for invoking the final chain
     args = {
         "d1_note": case.first_day_notes,
-        "progress_note": case.progress_notes,
+        "progress_note": case.get_progress_notes_and_lab(),
     }
 
     discharge_hosp_course = hospital_course_generator.invoke(args)

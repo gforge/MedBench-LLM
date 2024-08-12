@@ -136,21 +136,20 @@ class Case(RawCase):
         return self.daily_data[0].get_note_section()
 
     @property
-    def last_surgery_and_progress_notes(self):
+    def last_surgery_and_all_progress_notes(self):
         """
         Returns the last surgery and progress notes
         """
         try:
-            last_op_note = self.__extract_surgery_note(-1).to_markdown()
+            last_op_note = self.__extract_surgery_note(-1)
         except IndexError:
-            last_op_note = ""
+            last_op_note = None
 
-        try:
-            last_progress_note = self.__extract_progress_note(-1).to_markdown()
-        except IndexError:
-            last_progress_note = ""
+        notes = self.__extract_progress_notes()
+        notes.append(last_op_note)
+        notes.sort(key=lambda x: x.datetime)
 
-        return (last_op_note + "\n\n" + last_progress_note).strip()
+        return "\n\n".join([note.to_markdown() for note in notes])
 
     def initial_medications(self):
         """

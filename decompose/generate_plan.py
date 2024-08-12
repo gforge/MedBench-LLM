@@ -72,6 +72,6 @@ def generate_plan(case: Case, llm: BaseChatModel):
                                    | StrOutputParser())
 
     discharge_plan = plan_extract_generate_chain.invoke(
-        {"Plan_Notes": case.last_surgery_and_progress_notes})
+        {"Plan_Notes": case.last_surgery_and_all_progress_notes})
 
     return discharge_plan
