@@ -7,9 +7,26 @@ import tiktoken
 
 @dataclass
 class ModelDefinition:
+    """
+    A dataclass to store the model definition.
+
+    Also provides a method to get a file description string for knowing what
+    model was used to generate the text when saving the output.
+    """
     deployment: str
     name: str
     version: str
+
+    def get_id(self) -> str:
+        """
+        An id to identify the model used to generate the text.
+
+        Used when saving the output to know what model was used to generate
+
+        Returns:
+            str: A string with the model name and version.
+        """
+        return f"{self.name}_{self.version}"
 
 
 AvailableModels = Literal['gpt-35', 'gpt-4o-mini', 'gpt-4-turbo']
@@ -36,15 +53,24 @@ available_models: dict[AvailableModels, ModelDefinition] = {
 }
 
 
-def init_model(model_name: AvailableModels, temperature: float):
+def init_model(model_name: AvailableModels,
+               temperature: float) -> tuple[AzureChatOpenAI, str]:
+    """
+    Initialize a language model for a given model name and temperature.
+
+    Returns:
+        tuple[AzureChatOpenAI, str]: A tuple containing the language model
+        and a string to identify the model used to generate
+    """
     model = available_models.get(model_name)
     if not model:
         raise ValueError(f"Model {model_name} not found")
+
     return AzureChatOpenAI(
         deployment_name=model.deployment,
         model_name=model.name,
         temperature=temperature,
-    )
+    ), model.get_id() + f"@temp={temperature}"
 
 
 def count_tokens(text: str, model_name: AvailableModels) -> int:

@@ -13,13 +13,13 @@ class CaseDescAndData:
     A dataclass that holds the description and data of a case.
     """
     specialty: str
-    title: str
+    case_id: str
     language: str
     text: str
     object: Case
 
     def __repr__(self):
-        return f"{self.specialty} - {self.title} ({self.language}, len={len(self.text)})"
+        return f"{self.specialty} - {self.case_id} ({self.language}, len={len(self.text)})"
 
 
 def read_all_cases(base_dir: Path,
@@ -47,7 +47,7 @@ def read_all_cases(base_dir: Path,
     return {
         case_id:
         CaseDescAndData(specialty=re.sub(r'([^_]+)_.*', r'\1', case_id),
-                        title=re.sub(r'[^_]+_(.*)_.+', r'\1', case_id),
+                        case_id=re.sub(r'[^_]+_(.*)_.+', r'\1', case_id),
                         language=re.sub(r'.+_([^_]+)$', r'\1', case_id),
                         text=read_markdown_file(base_dir / 'merged' /
                                                 f'merged_{case_id}.md'),
