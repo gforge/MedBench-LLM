@@ -20,6 +20,7 @@ jupyter = "^1.0.0"
 flake8 = "^7.1.0"
 pylint = "^3.2.6"
 flake8-pyproject = "^1.2.3"
+tiktoken = "^0.7.0"
 
 
 [tool.poetry.group.dev.dependencies]
