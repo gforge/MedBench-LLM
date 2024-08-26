@@ -124,18 +124,23 @@ def basic_chain(llm: BaseChatModel) -> ChainTypes:
     """
 
     output_parser = StrOutputParser()
-
-    return ChainTypes(
-        dual=(ChatPromptTemplate.from_messages([
+    dual = (ChatPromptTemplate.from_messages(
+        [
             ("system", basic_dual_prompt.system),
             ("human", basic_dual_prompt.human),
         ],
-                                               template_format="f-string")
-              | llm
-              | output_parser),
-        single=(ChatPromptTemplate.from_messages([
+        template_format="f-string",
+    )
+            | llm
+            | output_parser)
+
+    single = (ChatPromptTemplate.from_messages(
+        [
             ("human", single_basic_prompt),
         ],
-                                                 template_format="f-string")
-                | llm
-                | output_parser))
+        template_format="f-string",
+    )
+              | llm
+              | output_parser)
+
+    return ChainTypes(dual=dual, single=single)

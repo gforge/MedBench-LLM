@@ -4,9 +4,9 @@ Please create a discharge summary based on the following clinical notes. The not
 {notes}
 """
 
-Format the discharge summary as follows:
-<discharge_summary>
+Format the discharge summary as follows (use discharg_summary tag for delimiting the summary):
 
+<discharge_summary>
 # Main diagnosis
 [Primary diagnosis with ICD code, e.g. Primary Knee Osteoarthritis (M17.1)]
 
@@ -50,7 +50,6 @@ Example: "Patient developed postoperative fever, peaking at 38.4°C on day 2. CR
 -   Follow-up appointments (with specific dates if available)
 -   Specific instructions or precautions for the patient
 -   Any pending tests or studies]
-
 </discharge_summary>
 
 
