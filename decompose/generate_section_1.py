@@ -7,9 +7,11 @@ from helpers import Case
 
 from .read_decompose_prompt import read_decompose_prompt as read
 
-_prompt_ed_extract = read('s1_ED_extract')
-_prompt_secondary_diagnosis_extract = read('s1_sec_diagnosis_extract')
-_prompt_generate_section_1 = read('s1_generate')
+_system_prompt = read('system_prompt')
+_ed_extract = _system_prompt + "\n\n" + read('s1_ED_extract')
+_secondary_diagnosis_extract = _system_prompt + "\n\n" + read(
+    's1_sec_diagnosis_extract')
+_generate_section_1 = _system_prompt + "\n\n" + read('s1_generate')
 
 
 def generate_section_1(case: Case, llm: BaseChatModel):
@@ -23,18 +25,18 @@ def generate_section_1(case: Case, llm: BaseChatModel):
     Returns:
         str: The generated section 1 of the discharge summary.
     """
-    ed_extract_template = ChatPromptTemplate.from_template(_prompt_ed_extract)
+    ed_extract_template = ChatPromptTemplate.from_template(_ed_extract)
+    output_parser = StrOutputParser()
 
-    ed_extract_chain = ed_extract_template | llm | StrOutputParser()
+    ed_extract_chain = ed_extract_template | llm | output_parser
 
     progress_sec_diagnosis_prompt = ChatPromptTemplate.from_template(
-        _prompt_secondary_diagnosis_extract)
+        _secondary_diagnosis_extract)
 
-    progress_sec_diagnosis_chain = progress_sec_diagnosis_prompt | llm | StrOutputParser(
-    )
+    progress_sec_diagnosis_chain = progress_sec_diagnosis_prompt | llm | output_parser
 
     section_1_sum_prompt = ChatPromptTemplate.from_template(
-        _prompt_generate_section_1)
+        _generate_section_1)
 
     section_1_summary_chain = (
         {
@@ -43,7 +45,7 @@ def generate_section_1(case: Case, llm: BaseChatModel):
         }
         | section_1_sum_prompt
         | llm
-        | StrOutputParser())
+        | output_parser)
 
     args = {"note": case.first_day_notes, "progress_note": case.progress_notes}
     discharge_sum_1 = section_1_summary_chain.invoke(args)

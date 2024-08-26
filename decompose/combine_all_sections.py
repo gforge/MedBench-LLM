@@ -1,5 +1,7 @@
 import pandas as pd
 from langchain_core.language_models import BaseChatModel
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 from helpers import Case
 
@@ -8,9 +10,13 @@ from .generate_hospital_course import generate_hospital_course
 from .generate_operation_section import generate_operation_section
 from .generate_plan import generate_plan
 from .generate_section_1 import generate_section_1
+from .read_decompose_prompt import read_decompose_prompt
+
+_human_final_summary = read_decompose_prompt("final_summary")
+_system_role_and_guidelines = read_decompose_prompt("system_prompt")
 
 
-def single_section(case: Case, llm: BaseChatModel) -> str:
+def single_decompose(case: Case, llm: BaseChatModel) -> str:
     """
     Combines different sections of a medical case into a single string.
 
@@ -27,7 +33,7 @@ def single_section(case: Case, llm: BaseChatModel) -> str:
     plan_section = generate_plan(case=case, llm=llm)
     medication_section = generate_discharge_meds(case=case, llm=llm)
 
-    return "\n\n".join([
+    everything = "\n\n".join([
         section_1_notes,
         operation_note_section,
         hospital_course_section,
@@ -35,8 +41,19 @@ def single_section(case: Case, llm: BaseChatModel) -> str:
         medication_section,
     ])
 
+    output_parser = StrOutputParser()
+    return (ChatPromptTemplate.from_messages(
+        [
+            ("system", _system_role_and_guidelines),
+            ("human", _human_final_summary),
+        ],
+        template_format="f-string",
+    )
+            | llm
+            | output_parser).invoke({"preprocessed_information": everything})
 
-def combine_all_sections(case: Case, llm: BaseChatModel, n: int):
+
+def multiple_decompose(case: Case, llm: BaseChatModel, n: int):
     """
     Combines the outputs of multiple calls to the `single_section` function
     into a single DataFrame.
@@ -53,7 +70,7 @@ def combine_all_sections(case: Case, llm: BaseChatModel, n: int):
     decompose_list_outputs = []
 
     for _ in range(n):
-        single_output = single_section(case, llm)
+        single_output = single_decompose(case, llm)
 
         decompose_list_outputs.append(single_output)
 

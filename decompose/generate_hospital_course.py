@@ -47,9 +47,10 @@ _extracted_functions_hosp_course = [{
     }
 }]
 
-_prompt_d1_sum = read('hosp_d1_sum')
-_prompt_progress_sum = read('hosp_progress_sum')
-_prompt_combine = read('hosp_combine')
+_system_prompt = read('system_prompt')
+_prompt_d1_sum = _system_prompt + "\n\n" + read('hosp_d1_sum')
+_prompt_progress_sum = _system_prompt + "\n\n" + read('hosp_progress_sum')
+_prompt_combine = _system_prompt + "\n\n" + read('hosp_combine')
 
 
 def generate_hospital_course(

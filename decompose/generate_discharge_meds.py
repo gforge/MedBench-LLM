@@ -38,6 +38,7 @@ extracted_medication = [{
     }
 }]
 
+# No system prompt required - included in the prompt (pharmacist role)
 _prompt_meds_extract = read('meds_extract')
 
 

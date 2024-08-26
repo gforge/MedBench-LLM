@@ -7,7 +7,8 @@ from helpers import Case
 
 from .read_decompose_prompt import read_decompose_prompt as read
 
-prompt_operation_notes_extract = read('op_details_extact')
+_system_prompt = read('system_prompt')
+_op_details_extract = _system_prompt + "\n\n" + read('op_details_extact')
 
 
 def generate_operation_section(case: Case, llm: BaseChatModel):
@@ -24,7 +25,7 @@ def generate_operation_section(case: Case, llm: BaseChatModel):
     output_parser = StrOutputParser()
 
     op_details_extract_template = ChatPromptTemplate.from_template(
-        prompt_operation_notes_extract)
+        _op_details_extract)
 
     op_details_extract_chain = op_details_extract_template | llm | output_parser
 
