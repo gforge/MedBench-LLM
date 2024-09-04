@@ -1,4 +1,4 @@
-You are an medical consultant. You are responsible for accurately include any new information from <updated_secondary_diagnosis_list> to the <previous_information>.
+You are responsible for accurately include any new information from <updated_secondary_diagnosis_list> to the <previous_information>.
 
 Previous information: ###
 {previous_information}

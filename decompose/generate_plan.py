@@ -40,8 +40,9 @@ extracted_functions_plan = [{
     }
 }]
 
-_prompt_plan_generate = read('plan_generate')
-_prompt_plan_extract = read('plan_extract')
+_system_prompt = read('system_prompt')
+_prompt_plan_generate = _system_prompt + "\n\n" + read('plan_generate')
+_prompt_plan_extract = _system_prompt + "\n\n" + read('plan_extract')
 
 
 def generate_plan(case: Case, llm: BaseChatModel):

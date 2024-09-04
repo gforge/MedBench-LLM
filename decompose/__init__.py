@@ -1,1 +1,1 @@
-from .combine_all_sections import combine_all_sections
+from .combine_all_sections import multiple_decompose, single_decompose

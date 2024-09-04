@@ -1,7 +1,7 @@
-Please create a discharge summary based on the following clinical notes. The notes are enclosed in triple quotes:
+Please create a discharge summary based on the following already partially summarized information enclosed in triple quotes:
 
 """
-{notes}
+{preprocessed_information}
 """
 
 Format the discharge summary as follows (use discharg_summary tag for delimiting the summary):
@@ -51,7 +51,6 @@ Example: "Patient developed postoperative fever, peaking at 38.4°C on day 2. CR
 -   Specific instructions or precautions for the patient
 -   Any pending tests or studies]
 </discharge_summary>
-
 
 Additional guidelines for this discharge summary:
 1. Limit the Hospital Course to a maximum of 3 paragraphs, each with 3-5 sentences, unless the case is particularly complex.

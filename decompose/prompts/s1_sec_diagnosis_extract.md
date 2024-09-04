@@ -1,4 +1,4 @@
-You are an medical consultant. You are responsible for extracting the secondary diagnosis in the <progress_note>.
+You are responsible for extracting the secondary diagnosis in the <progress_note>.
 
 Secondary diagnosis are medical conditions that develop during the hospital stay that are not the main diagnosis for admission.
 
