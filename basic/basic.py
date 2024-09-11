@@ -5,32 +5,11 @@ import pandas as pd
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.retrievers import RunnableSerializable
 
+from langchain_core.runnables import RunnableSerializable
 from helpers.read_prompt import read_dual_prompt, read_single_prompt
 
 current_file_folder = Path(__file__).parent / 'prompts'
-basic_dual_prompt = read_dual_prompt(
-    'basic',
-    prompt_path=current_file_folder,
-)
-single_basic_prompt = read_single_prompt(
-    'basic_both',
-    prompt_path=current_file_folder,
-)
-
-
-@dataclass
-class ChainTypes:
-    """
-    ChainTypes class represents the types of chains in the MedBench LLM basic module.
-
-    Attributes:
-        dual (RunnableSerializable[dict, str]): Represents a dual chain.
-        single (RunnableSerializable[dict, str]): Represents a single chain.
-    """
-    dual: RunnableSerializable[dict, str]
-    single: RunnableSerializable[dict, str]
 
 
 @dataclass
@@ -46,8 +25,35 @@ class TypesOutput:
     dual: str
 
 
+def get_dual_prompt(llm: BaseChatModel, language: str) -> RunnableSerializable:
+    """
+    Get the dual prompt template.
+
+    Args:
+    - llm: The language model.
+    - language (str): The language of the prompt.
+
+    Returns:
+    - ChatPromptTemplate: The dual prompt
+    """
+
+    basic_dual_prompt = read_dual_prompt('basic',
+                                         prompt_path=current_file_folder,
+                                         language=language)
+    return (ChatPromptTemplate.from_messages(
+        [
+            ("system", basic_dual_prompt.system),
+            ("human", basic_dual_prompt.human),
+        ],
+        template_format="f-string",
+    )
+            | llm
+            | StrOutputParser())
+
+
 def create_multiple_type_outputs(
     case: str,
+    language: str,
     n: int,
     llm: BaseChatModel,
 ) -> list[TypesOutput]:
@@ -63,12 +69,26 @@ def create_multiple_type_outputs(
     - List of TypesOutput objects with results from both system and human chains.
     """
     args = {"notes": case}
-    chains = basic_chain(llm=llm)
+
+    dual = get_dual_prompt(llm=llm, language=language)
+    single = (ChatPromptTemplate.from_messages(
+        [
+            ("human",
+             read_single_prompt(
+                 'basic_both',
+                 prompt_path=current_file_folder,
+                 language=language,
+             )),
+        ],
+        template_format="f-string",
+    )
+              | llm
+              | StrOutputParser())
 
     def run_chain() -> TypesOutput:
         try:
-            single_output = chains.single.invoke(args)
-            dual_output = chains.dual.invoke(args)
+            single_output = single.invoke(args)
+            dual_output = dual.invoke(args)
         except Exception as e:
             print(f"Error invoking chain: {e}")
             single_output, dual_output = "Error", "Error"
@@ -94,6 +114,7 @@ def convert_to_df(outputs: list[TypesOutput]) -> pd.DataFrame:
 
 def create_multiple_basic_prompts(
     case: str,
+    language: str,
     n: int,
     llm: BaseChatModel,
 ) -> pd.DataFrame:
@@ -108,39 +129,8 @@ def create_multiple_basic_prompts(
     Returns:
     - DataFrame with columns 'both' and 'human'.
     """
-    outputs = create_multiple_type_outputs(case=case, n=n, llm=llm)
+    outputs = create_multiple_type_outputs(case=case,
+                                           language=language,
+                                           n=n,
+                                           llm=llm)
     return convert_to_df(outputs)
-
-
-def basic_chain(llm: BaseChatModel) -> ChainTypes:
-    """
-    Executes a basic chain of prompts using the given language model.
-
-    Args:
-        llm (BaseChatModel): The language model used for generating responses.
-
-    Returns:
-        ChainTypes: An object containing the dual and single chains of prompts.
-    """
-
-    output_parser = StrOutputParser()
-    dual = (ChatPromptTemplate.from_messages(
-        [
-            ("system", basic_dual_prompt.system),
-            ("human", basic_dual_prompt.human),
-        ],
-        template_format="f-string",
-    )
-            | llm
-            | output_parser)
-
-    single = (ChatPromptTemplate.from_messages(
-        [
-            ("human", single_basic_prompt),
-        ],
-        template_format="f-string",
-    )
-              | llm
-              | output_parser)
-
-    return ChainTypes(dual=dual, single=single)
