@@ -1,4 +1,4 @@
-Du är ansvarig för att noggrant extrahera uppföljningsplanerna för patienten baserat på <Plan_Notes>.
+Du är ansvarig för att noggrant extrahera uppföljningsplanerna för patienten baserat på <Utskrivningsanteckning>.
 
 Du måste extrahera instruktioner relaterade till instruktioner efter utskrivning, uppföljningsbesök med eventuella medicinska enheter, följt av tiden till uppföljningsbesök, förändringar i mediciner, försiktighetsåtgärder, förmåga att belasta och förekomst av sutur.
 
@@ -11,7 +11,7 @@ Belastningsförmåga: -||-
 Suturer: <Binär_tillgänglig_eller_icke_tillgänglig>
 
 Utskrivningsanteckning: ###
-{Plan_Notes}
+{plan_notes}
 ###
 
 Professionellt medicinskt språk ska användas.

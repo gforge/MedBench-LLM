@@ -1,7 +1,7 @@
 Skapa en utskrivningsanteckning med följande, delvis redan sammanfattade, text inom trippla citationstecken:
 
 """
-Redan processad information
+{preprocessed_information}
 """
 
 <utskrivningssammanfattning>

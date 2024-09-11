@@ -10,7 +10,7 @@ För varje kirurgisk procedur:
 - Procedurens namn, Operationsdatum, Kirurg(er)
 
 Anteckning: ###
-{anteckning}
+{note}
 ###
 
 Visa resultatet i markdown-format.

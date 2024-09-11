@@ -9,8 +9,8 @@ Social historia: <kommaseparerad_lista_av_all_social_historia>
 Tidigare medicinsk historia: <kommaseparerad_lista_av_alla_medicinska_tillstånd_före_inläggning>
 Orsaker till inläggning: <kommaseparerad_lista_av_huvudorsak_till_inläggning>
 
-Anteckning: ### 
-{anteckning}
+Anteckning: ###
+{note}
 ###
 
 Visa resultatet i Markdown-format.

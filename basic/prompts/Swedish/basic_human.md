@@ -1,7 +1,7 @@
 Skapa en utskrivningsanteckning baserad på följande kliniska anteckningar. Anteckningar omges av trippla citationstecken:
 
 """
-Anteckning.
+{notes}
 """
 
 <Utskrivningsanteckning>
@@ -47,4 +47,3 @@ Modifierade doser av befintliga mediciner. Inkludera inte tillfälliga mediciner
 Uppföljningsbesök (med specifika datum om tillgängliga)
 Specifika instruktioner eller försiktighetsåtgärder för patienten
 Eventuella väntande tester eller studier] </discharge_summary>
-

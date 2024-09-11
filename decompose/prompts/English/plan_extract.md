@@ -1,4 +1,4 @@
-You are responsible for accurately extracting the follow-up plans for the patient based on the <Plan_Notes>.
+You are responsible for accurately extracting the follow-up plans for the patient based on the <plan_notes>.
 
 You will have to extract the instructions related to the instructions and management after discharge, follow-up visits with any medical departments, then the time till follow-up visits, changes in medicine, precautions, ability to weight bearing and presence of suture
 
@@ -10,8 +10,8 @@ Precautions after discharge: -||-
 Weight bearing ability: -||-
 Suture: <Binary_present_or_not_present>
 
-Plan_Notes: ###
-{Plan_Notes}
+Plan notes: ###
+{plan_notes}
 ###
 
 Professional medical language should be used.

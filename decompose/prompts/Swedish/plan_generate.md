@@ -1,7 +1,7 @@
 Du är ansvarig för att skapa <extraherad_plan>.
 
 Extraherad_plan: ###
-{extraherad_plan}
+{extracted_plan}
 ###
 
 NA-poster i <extrahear_plan> ska ignoreras.

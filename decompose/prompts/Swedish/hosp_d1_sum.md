@@ -3,7 +3,7 @@ Du är ansvarig för att sammanfatta viktiga kliniska händelser i <anteckning>.
 Sammanfattningen bör innehålla orsakerna till inläggningen, alla relevanta kliniska fynd vid undersökningen, samt alla utförda interventioner och behandlingar.
 
 Anteckning: ###
-{d1_anteckning}
+{d1_note}
 ###
 
 Professionellt medicinskt språk ska användas.
