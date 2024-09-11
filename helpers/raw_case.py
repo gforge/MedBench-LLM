@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .lab_tests import LabTest
 from .medications import Medication
@@ -13,10 +13,12 @@ class RawCase(BaseModel):
     """
     id: str
 
-    language: Literal['original']
+    language: Literal['English', "Swedish"]
     """
     The language of the case. Currently only 'original' is supported
-    that is equal to simple English.
+    that is equal to simple English. Each language will require it's own prompts.
+    The language is also capitalized and original as input will
+    be converted to 'English'.
     """
 
     specialty: Literal['Orthopaedics']
@@ -32,6 +34,16 @@ class RawCase(BaseModel):
     chart: str
 
     daily_data: list[SingleDay] = Field(default_factory=list)
+
+    @field_validator('language', mode='before')
+    @classmethod
+    def convert_and_capitalize_language(cls, value: str) -> str:
+        """
+        Converts 'original' to 'English' and capitalizes other language values.
+        """
+        if value.lower() == 'original':
+            return 'English'
+        return value.capitalize()
 
     class Config:
         """
