@@ -166,5 +166,8 @@ class NoteSection:
         """
         if self.language == "original":
             return self.type.startswith('Progress')
-        else:
-            raise ValueError(f"Unsupported language: {self.language}")
+
+        if self.language == "Swedish":
+            return self.type.startswith('Daganteckning')
+
+        raise ValueError(f"Unsupported language: {self.language}")

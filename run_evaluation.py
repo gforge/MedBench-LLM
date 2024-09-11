@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from langchain.globals import set_verbose
 from tqdm import tqdm
 
-from basic.basic import basic_chain
+from basic.basic import get_dual_prompt
 from decompose import single_decompose
 from helpers import init_model, read_all_cases
 
@@ -39,7 +39,7 @@ if not output_folder.exists():
 
 case_dict = read_all_cases(base_dir=case_dir,
                            filter_specialty='Orthopaedics',
-                           filter_language='original')
+                           filter_language='Swedish')
 
 
 def save_output(dest: Path, file_name: str, out_str: str):
@@ -70,8 +70,11 @@ for case in tqdm(case_dict.values(), desc="Processing cases"):
     start_time = time.time()
 
     try:
+        basic_out_str = get_dual_prompt(
+            llm=llm,
+            language=case.object.language,
+        ).invoke({"notes": case.text})
         decompose_out_str = single_decompose(case=case.object, llm=llm)
-        basic_out_str = basic_chain(llm=llm).dual.invoke({"notes": case.text})
 
         prefix = f'{case.case_id}@{case.language}@${model_id}'
         save_output(output_folder, f"{prefix}@basic.txt", basic_out_str)
