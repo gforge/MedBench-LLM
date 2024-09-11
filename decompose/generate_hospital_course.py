@@ -47,11 +47,6 @@ _extracted_functions_hosp_course = [{
     }
 }]
 
-_system_prompt = read('system_prompt')
-_prompt_d1_sum = _system_prompt + "\n\n" + read('hosp_d1_sum')
-_prompt_progress_sum = _system_prompt + "\n\n" + read('hosp_progress_sum')
-_prompt_combine = _system_prompt + "\n\n" + read('hosp_combine')
-
 
 def generate_hospital_course(
     case: Case,
@@ -71,16 +66,30 @@ def generate_hospital_course(
         None
     """
 
-    d1_extract_template = ChatPromptTemplate.from_template(_prompt_d1_sum)
+    d1_extract_template = ChatPromptTemplate.from_template(
+        read(
+            'hosp_d1_sum',
+            language=case.language,
+            prefix_system_prompt=True,
+        ))
 
     d1_extract_chain = d1_extract_template | llm | StrOutputParser()
 
     progress_sum_template = ChatPromptTemplate.from_template(
-        _prompt_progress_sum)
+        read(
+            'hosp_progress_sum',
+            language=case.language,
+            prefix_system_prompt=True,
+        ))
 
     progress_sum_chain = progress_sum_template | llm | StrOutputParser()
 
-    combine_template = ChatPromptTemplate.from_template(_prompt_combine)
+    combine_template = ChatPromptTemplate.from_template(
+        read(
+            'hosp_combine',
+            language=case.language,
+            prefix_system_prompt=True,
+        ))
 
     hospital_course_generator = ({
         "day1_summary": d1_extract_chain,

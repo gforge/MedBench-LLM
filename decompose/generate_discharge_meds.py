@@ -38,9 +38,6 @@ extracted_medication = [{
     }
 }]
 
-# No system prompt required - included in the prompt (pharmacist role)
-_prompt_meds_extract = read('meds_extract')
-
 
 def generate_discharge_meds(case: Case, llm: BaseChatModel):
     """
@@ -53,8 +50,13 @@ def generate_discharge_meds(case: Case, llm: BaseChatModel):
     Returns:
         dict: A dictionary containing the generated discharge medications.
     """
+    # No system prompt required - included in the prompt (pharmacist role)
     meds_extract_template = ChatPromptTemplate.from_template(
-        _prompt_meds_extract)
+        read(
+            'meds_extract',
+            language=case.language,
+            prefix_system_prompt=False,
+        ))
 
     meds_extract_chain = meds_extract_template | llm | StrOutputParser()
 

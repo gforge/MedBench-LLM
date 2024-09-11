@@ -40,10 +40,6 @@ extracted_functions_plan = [{
     }
 }]
 
-_system_prompt = read('system_prompt')
-_prompt_plan_generate = _system_prompt + "\n\n" + read('plan_generate')
-_prompt_plan_extract = _system_prompt + "\n\n" + read('plan_extract')
-
 
 def generate_plan(case: Case, llm: BaseChatModel):
     """
@@ -58,12 +54,20 @@ def generate_plan(case: Case, llm: BaseChatModel):
     """
 
     plan_extract_template = ChatPromptTemplate.from_template(
-        _prompt_plan_extract)
+        read(
+            'plan_extract',
+            language=case.language,
+            prefix_system_prompt=True,
+        ))
 
     plan_extract_chain = plan_extract_template | llm | JsonOutputParser()
 
     plan_generate_template = ChatPromptTemplate.from_template(
-        _prompt_plan_generate)
+        read(
+            'plan_generate',
+            language=case.language,
+            prefix_system_prompt=True,
+        ))
 
     plan_extract_generate_chain = ({
         "extracted_plan": plan_extract_chain

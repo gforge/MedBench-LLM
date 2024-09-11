@@ -12,9 +12,6 @@ from .generate_plan import generate_plan
 from .generate_section_1 import generate_section_1
 from .read_decompose_prompt import read_decompose_prompt
 
-_human_final_summary = read_decompose_prompt("final_summary")
-_system_role_and_guidelines = read_decompose_prompt("system_prompt")
-
 
 def single_decompose(case: Case, llm: BaseChatModel) -> str:
     """
@@ -44,8 +41,14 @@ def single_decompose(case: Case, llm: BaseChatModel) -> str:
     output_parser = StrOutputParser()
     return (ChatPromptTemplate.from_messages(
         [
-            ("system", _system_role_and_guidelines),
-            ("human", _human_final_summary),
+            ("system",
+             read_decompose_prompt("system_prompt",
+                                   language=case.language,
+                                   prefix_system_prompt=False)),
+            ("human",
+             read_decompose_prompt("final_summary",
+                                   language=case.language,
+                                   prefix_system_prompt=False)),
         ],
         template_format="f-string",
     )
