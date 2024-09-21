@@ -39,10 +39,16 @@ def read_all_cases(base_dir: Path,
             if case_id.startswith(filter_specialty)
         ]
 
+    if len(raw_ids) == 0:
+        raise ValueError(f"No cases found for specialty '{filter_specialty}'")
+
     if filter_language:
         raw_ids = [
             case_id for case_id in raw_ids if case_id.endswith(filter_language)
         ]
+
+    if len(raw_ids) == 0:
+        raise ValueError(f"No cases found for language '{filter_language}'")
 
     return {
         case_id:

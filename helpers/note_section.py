@@ -164,7 +164,7 @@ class NoteSection:
         """
         True if the note type is a progress note, False otherwise.
         """
-        if self.language == "original":
+        if self.language == "original" or self.language == "English":
             return self.type.startswith('Progress')
 
         if self.language == "Swedish":

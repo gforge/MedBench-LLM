@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from basic.basic import get_dual_prompt
 from decompose import single_decompose
-from helpers import init_model, read_all_cases
+from helpers import init_model, read_all_cases, strip_delimeters
 
 # Setup logging
 logging.basicConfig(level=logging.INFO,
@@ -24,9 +24,12 @@ set_verbose(False)
 # Load azure credentials
 load_dotenv()
 
+SPECIALTY = "Medicine"
+LANGUAGE = "original"
+
 # Setup paths
 project_folder = Path(os.getcwd())
-output_folder = project_folder / "data" / "output" / "Orthopaedics"
+output_folder = project_folder / "data" / "output" / SPECIALTY
 case_dir = project_folder / "data" / 'processed'
 
 llm, model_id = init_model("gpt-4-turbo", temperature=0.0)
@@ -38,18 +41,18 @@ if not output_folder.exists():
     output_folder.mkdir(parents=True)
 
 case_dict = read_all_cases(base_dir=case_dir,
-                           filter_specialty='Orthopaedics',
-                           filter_language='Swedish')
+                           filter_specialty=SPECIALTY,
+                           filter_language=LANGUAGE)
+
+print(f"Found {len(case_dict)} cases to process.")
 
 
 def save_output(dest: Path, file_name: str, out_str: str):
     """
     Save the output string to a file.
     """
-    # The output is delimited by the tags <discharge_summary> and </discharge_summary>
-    # We will remove these tags and save the output to a file
-    out_str = out_str.replace("<discharge_summary>",
-                              "").replace("</discharge_summary>", "")
+    out_str = strip_delimeters(out_str)
+
     with open(dest / file_name, "w", encoding="utf-8") as f:
         f.write(out_str)
 

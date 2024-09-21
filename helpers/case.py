@@ -72,7 +72,7 @@ class Case(RawCase):
 
     def __extract_progress_notes(self):
         typename: re.Pattern | None = None
-        if self.language == "original":
+        if self.language == "original" or self.language == "English":
             typename = re.compile(r"Progress")
         elif self.language == "Swedish":
             typename = re.compile(r"Daganteckning")
@@ -94,7 +94,7 @@ class Case(RawCase):
 
     def __extract_surgery_notes(self):
         typename: re.Pattern | None = None
-        if self.language == "original":
+        if self.language == "original" or self.language == "English":
             typename = re.compile(r"^(Operation|Surgery)")
         elif self.language == "Swedish":
             typename = re.compile(r"^(Operation|Kirurgi)")
@@ -144,7 +144,9 @@ class Case(RawCase):
             last_op_note = None
 
         notes = self.__extract_progress_notes()
-        notes.append(last_op_note)
+        if last_op_note:
+            notes.append(last_op_note)
+
         notes.sort(key=lambda x: x.datetime)
 
         return "\n\n".join([note.to_markdown() for note in notes])

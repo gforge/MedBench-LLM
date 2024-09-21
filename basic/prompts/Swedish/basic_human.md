@@ -4,8 +4,7 @@ Skapa en utskrivningsanteckning baserad på följande kliniska anteckningar. Ant
 {notes}
 """
 
-<Utskrivningsanteckning>
-
+<discharge_summary>
 # Huvuddiagnos
 [Primär diagnos med ICD-kod, t.ex. Primär knäartros (M17.1)]
 
@@ -46,4 +45,5 @@ Modifierade doser av befintliga mediciner. Inkludera inte tillfälliga mediciner
 
 Uppföljningsbesök (med specifika datum om tillgängliga)
 Specifika instruktioner eller försiktighetsåtgärder för patienten
-Eventuella väntande tester eller studier] </discharge_summary>
+Eventuella väntande tester eller studier]
+</discharge_summary>

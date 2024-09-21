@@ -21,7 +21,7 @@ class RawCase(BaseModel):
     be converted to 'English'.
     """
 
-    specialty: Literal['Orthopaedics']
+    specialty: Literal['Orthopaedics', 'Medicine']
     """
     The specialty of the case. Currently only 'Orthopaedics' is supported.
     Each language will require it's own prompts.
