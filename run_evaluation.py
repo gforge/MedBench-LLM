@@ -79,7 +79,7 @@ for case in tqdm(case_dict.values(), desc="Processing cases"):
         ).invoke({"notes": case.text})
         decompose_out_str = single_decompose(case=case.object, llm=llm)
 
-        prefix = f'{case.case_id}@{case.language}@${model_id}'
+        prefix = f'Summary_4_{case.case_id}@{case.language}@${model_id}'
         save_output(output_folder, f"{prefix}@basic.txt", basic_out_str)
         save_output(output_folder, f"{prefix}@decompose.txt",
                     decompose_out_str)
