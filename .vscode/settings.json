@@ -1,5 +1,13 @@
 {
     "flake8.args": [
         "--config-toml=./pyproject.toml"
-    ]
+    ],
+    "notebook.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        },
+    },
+    "isort.args": ["--profile", "black"],
 }
