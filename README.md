@@ -10,17 +10,17 @@ Welcome to the MedBench-LLM-Summaries repository. This repository contains Pytho
 - **Benchmarking**: Establish benchmarks to assess the quality and accuracy of LLM-generated summaries.
 - **Evaluation**: Implement methods to quantitatively and qualitatively evaluate the generated summaries.
 
-## Methods
+## Current Approach
 
-- **Data Input**: Process core medical notes and related lab and medication data to prepare inputs for LLMs.
-- **Model Usage**: Apply advanced LLMs to generate summaries based on the processed EHR data.
-- **Evaluation Metrics**: Use various metrics to evaluate the completeness, accuracy, and quality of the generated summaries.
+This repository implements a **Basic** direct prompting approach where the entire EHR is provided to the LLM with a structured prompt to generate comprehensive discharge summaries.
+
+Previous approaches (map-reduce, decompose, refine) have been removed as they didn't show significant differences in performance compared to the basic approach.
 
 ## Usage
 
 1. **Setup**: Install the required dependencies using `uv sync`.
 2. **Data Preparation**: Prepare the EHR data in the specified format under `data/`.
-3. **Run Summarization**: Use the provided scripts to generate summaries from the EHR data.
+3. **Run Summarization**: Use `run_evaluation.py` to generate summaries from the EHR data.
 4. **Evaluation**: Use the MedBench platform to evaluate the generated summaries.
 
 ## Contributing

@@ -24,6 +24,7 @@ class SingleDay:
     """
     A class representing a single day in a case.
     """
+
     date: datetime
     language: Literal["original"]
     notes: list[NoteSection]
@@ -75,9 +76,7 @@ class SingleDay:
 
         return ret
 
-    def get_note_section(self,
-                         filter_fn: Callable[[NoteSection], bool]
-                         | None = None):
+    def get_note_section(self, filter_fn: Callable[[NoteSection], bool] | None = None):
         """
         A markdown section of the note preceded
 

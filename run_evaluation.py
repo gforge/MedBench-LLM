@@ -9,12 +9,12 @@ from langchain.globals import set_verbose
 from tqdm import tqdm
 
 from basic.basic import get_dual_prompt
-from decompose import single_decompose
 from helpers import init_model, read_all_cases, strip_delimeters
 
 # Setup logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # Suppress some loggers
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -30,7 +30,7 @@ LANGUAGE = "original"
 # Setup paths
 project_folder = Path(os.getcwd())
 output_folder = project_folder / "data" / "output" / SPECIALTY
-case_dir = project_folder / "data" / 'processed'
+case_dir = project_folder / "data" / "processed"
 
 llm, model_id = init_model("gpt-4-turbo", temperature=0.0)
 
@@ -40,9 +40,9 @@ if not case_dir.exists():
 if not output_folder.exists():
     output_folder.mkdir(parents=True)
 
-case_dict = read_all_cases(base_dir=case_dir,
-                           filter_specialty=SPECIALTY,
-                           filter_language=LANGUAGE)
+case_dict = read_all_cases(
+    base_dir=case_dir, filter_specialty=SPECIALTY, filter_language=LANGUAGE
+)
 
 print(f"Found {len(case_dict)} cases to process.")
 
@@ -77,12 +77,9 @@ for case in tqdm(case_dict.values(), desc="Processing cases"):
             llm=llm,
             language=case.object.language,
         ).invoke({"notes": case.text})
-        decompose_out_str = single_decompose(case=case.object, llm=llm)
 
-        prefix = f'Summary_4_{case.case_id}@{case.language}@${model_id}'
+        prefix = f"Summary_4_{case.case_id}@{case.language}@${model_id}"
         save_output(output_folder, f"{prefix}@basic.txt", basic_out_str)
-        save_output(output_folder, f"{prefix}@decompose.txt",
-                    decompose_out_str)
 
         logging.info("Saved outputs for case %s", case.case_id)
     except Exception as e:

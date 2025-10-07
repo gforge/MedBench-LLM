@@ -9,7 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
 from helpers.read_prompt import read_dual_prompt, read_single_prompt
 
-current_file_folder = Path(__file__).parent / 'prompts'
+current_file_folder = Path(__file__).parent / "prompts"
 
 
 @dataclass
@@ -21,6 +21,7 @@ class TypesOutput:
         single (str): The single output type.
         dual (str): The dual output type.
     """
+
     single: str
     dual: str
 
@@ -37,18 +38,20 @@ def get_dual_prompt(llm: BaseChatModel, language: str) -> RunnableSerializable:
     - ChatPromptTemplate: The dual prompt
     """
 
-    basic_dual_prompt = read_dual_prompt('basic',
-                                         prompt_path=current_file_folder,
-                                         language=language)
-    return (ChatPromptTemplate.from_messages(
-        [
-            ("system", basic_dual_prompt.system),
-            ("human", basic_dual_prompt.human),
-        ],
-        template_format="f-string",
+    basic_dual_prompt = read_dual_prompt(
+        "basic", prompt_path=current_file_folder, language=language
     )
-            | llm
-            | StrOutputParser())
+    return (
+        ChatPromptTemplate.from_messages(
+            [
+                ("system", basic_dual_prompt.system),
+                ("human", basic_dual_prompt.human),
+            ],
+            template_format="f-string",
+        )
+        | llm
+        | StrOutputParser()
+    )
 
 
 def create_multiple_type_outputs(
@@ -71,19 +74,23 @@ def create_multiple_type_outputs(
     args = {"notes": case}
 
     dual = get_dual_prompt(llm=llm, language=language)
-    single = (ChatPromptTemplate.from_messages(
-        [
-            ("human",
-             read_single_prompt(
-                 'basic_both',
-                 prompt_path=current_file_folder,
-                 language=language,
-             )),
-        ],
-        template_format="f-string",
+    single = (
+        ChatPromptTemplate.from_messages(
+            [
+                (
+                    "human",
+                    read_single_prompt(
+                        "basic_both",
+                        prompt_path=current_file_folder,
+                        language=language,
+                    ),
+                ),
+            ],
+            template_format="f-string",
+        )
+        | llm
+        | StrOutputParser()
     )
-              | llm
-              | StrOutputParser())
 
     def run_chain() -> TypesOutput:
         try:
@@ -129,8 +136,5 @@ def create_multiple_basic_prompts(
     Returns:
     - DataFrame with columns 'both' and 'human'.
     """
-    outputs = create_multiple_type_outputs(case=case,
-                                           language=language,
-                                           n=n,
-                                           llm=llm)
+    outputs = create_multiple_type_outputs(case=case, language=language, n=n, llm=llm)
     return convert_to_df(outputs)

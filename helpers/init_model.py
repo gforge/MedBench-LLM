@@ -13,6 +13,7 @@ class ModelDefinition:
     Also provides a method to get a file description string for knowing what
     model was used to generate the text when saving the output.
     """
+
     deployment: str
     name: str
     version: str
@@ -29,23 +30,20 @@ class ModelDefinition:
         return f"{self.name}_{self.version}"
 
 
-AvailableModels = Literal['gpt-35', 'gpt-4o-mini', 'gpt-4-turbo']
+AvailableModels = Literal["gpt-35", "gpt-4o-mini", "gpt-4-turbo"]
 
 available_models: dict[AvailableModels, ModelDefinition] = {
-    "gpt-35":
-    ModelDefinition(
+    "gpt-35": ModelDefinition(
         deployment="gpt_35_16k",
         name="gpt-35-turbo-16k",
         version="0613",
     ),
-    "gpt-4o-mini":
-    ModelDefinition(
+    "gpt-4o-mini": ModelDefinition(
         deployment="gpt-4o-mini",
         name="gpt-4o-mini",
         version="2024-07-18",
     ),
-    "gpt-4-turbo":
-    ModelDefinition(
+    "gpt-4-turbo": ModelDefinition(
         deployment="gpt-4-turbo",
         name="gpt-4",
         version="turbo-2024-04-09",
@@ -53,8 +51,9 @@ available_models: dict[AvailableModels, ModelDefinition] = {
 }
 
 
-def init_model(model_name: AvailableModels,
-               temperature: float) -> tuple[AzureChatOpenAI, str]:
+def init_model(
+    model_name: AvailableModels, temperature: float
+) -> tuple[AzureChatOpenAI, str]:
     """
     Initialize a language model for a given model name and temperature.
 
@@ -66,11 +65,14 @@ def init_model(model_name: AvailableModels,
     if not model:
         raise ValueError(f"Model {model_name} not found")
 
-    return AzureChatOpenAI(
-        deployment_name=model.deployment,
-        model_name=model.name,
-        temperature=temperature,
-    ), model.get_id() + f"@temp={temperature}"
+    return (
+        AzureChatOpenAI(
+            deployment_name=model.deployment,
+            model_name=model.name,
+            temperature=temperature,
+        ),
+        model.get_id() + f"@temp={temperature}",
+    )
 
 
 def count_tokens(text: str, model_name: AvailableModels) -> int:
@@ -80,7 +82,7 @@ def count_tokens(text: str, model_name: AvailableModels) -> int:
     model_to_encoding = {
         "gpt-35-turbo-16k": "cl100k_base",
         "gpt-4o-mini": "o200k_base",
-        "gpt-4": "cl100k_base"
+        "gpt-4": "cl100k_base",
     }
     encoding_name = model_to_encoding.get(model_name)
     if not encoding_name:

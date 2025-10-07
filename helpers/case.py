@@ -17,9 +17,10 @@ class Case(RawCase):
         super().__init__(**data)
         self._sections = [
             NoteSection(raw, language=self.language)
-            for raw in re.split("(^|\n)# ", self.chart) if raw.strip()
+            for raw in re.split("(^|\n)# ", self.chart)
+            if raw.strip()
         ]
-        assert self._sections, f'No sections found in case: {self.chart}'
+        assert self._sections, f"No sections found in case: {self.chart}"
 
         dd: list[SingleDay] = []
         for single_date in self.get_all_dates():
@@ -29,11 +30,11 @@ class Case(RawCase):
                     language=self.language,
                     notes=[s for s in self._sections if s.date == single_date],
                     medications=[
-                        m for m in self.singleMedication
-                        if m.date == single_date
+                        m for m in self.singleMedication if m.date == single_date
                     ],
                     labs=[l for l in self.singleLab if l.date == single_date],
-                ))
+                )
+            )
         self.daily_data = dd
 
         # Sort sections by date
@@ -79,10 +80,7 @@ class Case(RawCase):
         else:
             raise ValueError(f"Unsupported language: {self.language}")
 
-        return [
-            section for section in self.sections
-            if typename.match(section.type)
-        ]
+        return [section for section in self.sections if typename.match(section.type)]
 
     @property
     def progress_notes(self) -> str:
@@ -90,7 +88,8 @@ class Case(RawCase):
         Returns a string of all progress notes
         """
         return "\n\n".join(
-            [note.to_markdown() for note in self.__extract_progress_notes()])
+            [note.to_markdown() for note in self.__extract_progress_notes()]
+        )
 
     def __extract_surgery_notes(self):
         typename: re.Pattern | None = None
@@ -101,10 +100,7 @@ class Case(RawCase):
         else:
             raise ValueError(f"Unsupported language: {self.language}")
 
-        return [
-            section for section in self.sections
-            if typename.match(section.type)
-        ]
+        return [section for section in self.sections if typename.match(section.type)]
 
     def __extract_surgery_note(self, idx: int):
         notes = self.__extract_surgery_notes()
@@ -187,8 +183,7 @@ class Case(RawCase):
         assert day < self.days, f"Day should be less than {self.days}"
         return self.daily_data[day]
 
-    def get_progress_notes_and_lab(self,
-                                   day: int | datetime | None = None) -> str:
+    def get_progress_notes_and_lab(self, day: int | datetime | None = None) -> str:
         """
         Returns the notes and labs for the specified day
         """
@@ -196,28 +191,28 @@ class Case(RawCase):
         if day is not None:
             selected_dates = [self.get_day(day)]
 
-        note_filter_fn: Callable[[NoteSection],
-                                 bool] = lambda d: d.is_progress_note
+        note_filter_fn: Callable[[NoteSection], bool] = lambda d: d.is_progress_note
 
-        return "\n\n".join([
-            date.to_markdown(include_meds=False, filter_note_fn=note_filter_fn)
-            for date in selected_dates
-        ])
+        return "\n\n".join(
+            [
+                date.to_markdown(include_meds=False, filter_note_fn=note_filter_fn)
+                for date in selected_dates
+            ]
+        )
 
     @property
     def all_medications(self) -> str:
         """
         Returns all medications in the case
         """
-        return "\n\n".join([
-            d.get_medications_list(include_header=True)
-            for d in self.daily_data
-        ])
+        return "\n\n".join(
+            [d.get_medications_list(include_header=True) for d in self.daily_data]
+        )
 
     def __rep__(self):
-        labs = f'{len(self.singleLab)} labs'
-        meds = f'{len(self.singleMedication)} medications'
-        notes = f'{len(self.chart)} characters of notes'
+        labs = f"{len(self.singleLab)} labs"
+        meds = f"{len(self.singleMedication)} medications"
+        notes = f"{len(self.chart)} characters of notes"
 
         return f"Case({self.id} [{self.specialty} in {self.language}], {labs}, {meds}, {notes})"
 

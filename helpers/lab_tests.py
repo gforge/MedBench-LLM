@@ -8,8 +8,9 @@ class LabTest(BaseModel):
     """
     Holds the information of a single lab test
     """
-    lab_test: str = Field(..., alias='labTest')
-    reference_interval: str = Field(..., alias='referenceInterval')
+
+    lab_test: str = Field(..., alias="labTest")
+    reference_interval: str = Field(..., alias="referenceInterval")
     unit: str
     value: Union[str, int, float]  # Can accept string, int, or float
     date: date

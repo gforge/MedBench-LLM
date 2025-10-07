@@ -34,7 +34,8 @@ class NoteSection:
         self.language = language
         self.raw = raw.strip()
         self.type, self.date, self.time, self.author, self.content = self._parse_raw(
-            raw)
+            raw
+        )
 
     def _parse_raw(self, raw: str):
         lines = raw.strip().split("\n")
@@ -60,8 +61,7 @@ class NoteSection:
         Raises:
             ValueError: If the header format is invalid.
         """
-        pattern = re.compile(
-            r"^([^,]+), (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}), (.+)$")
+        pattern = re.compile(r"^([^,]+), (\d{4}-\d{2}-\d{2}), (\d{2}:\d{2}), (.+)$")
         match = pattern.match(header)
         if not match:
             raise ValueError(f"Invalid note header format: '{header}'")
@@ -76,8 +76,7 @@ class NoteSection:
         date = datetime.strptime(date_str, "%Y-%m-%d")
         return note_type, date, time_str, author
 
-    def _validate_header(self, note_type: str, date: str, time: str,
-                         author: str):
+    def _validate_header(self, note_type: str, date: str, time: str, author: str):
         """
         Validates the header fields.
 
@@ -109,16 +108,14 @@ class NoteSection:
         Returns:
             str: The formatted content.
         """
-        content_has_header1 = any(
-            line.startswith("# ") for line in content_lines)
+        content_has_header1 = any(line.startswith("# ") for line in content_lines)
         if content_has_header1:
             content_lines = [
-                f"#{line}" if line.startswith("# ") else line
-                for line in content_lines
+                f"#{line}" if line.startswith("# ") else line for line in content_lines
             ]
         return "\n".join(content_lines)
 
-    def days_between(self, other: 'NoteSection') -> int:
+    def days_between(self, other: "NoteSection") -> int:
         """
         Returns the number of days between the date of this note and the date of another note.
 
@@ -135,8 +132,7 @@ class NoteSection:
         """
         Returns the datetime of the note.
         """
-        return datetime.combine(self.date,
-                                datetime.strptime(self.time, "%H:%M").time())
+        return datetime.combine(self.date, datetime.strptime(self.time, "%H:%M").time())
 
     def __repr__(self) -> str:
         """
@@ -145,8 +141,8 @@ class NoteSection:
         Returns:
             str: String representation of the NoteSection.
         """
-        chars = f'len: {len(self.content)} chars'
-        author = f'author={self.author}'
+        chars = f"len: {len(self.content)} chars"
+        author = f"author={self.author}"
         dt = f'date={self.date.strftime("%Y-%m-%d")}, time={self.time}'
         return f"NoteSection(type={self.type}, {dt}, {author}, {chars})"
 
@@ -165,9 +161,9 @@ class NoteSection:
         True if the note type is a progress note, False otherwise.
         """
         if self.language == "original" or self.language == "English":
-            return self.type.startswith('Progress')
+            return self.type.startswith("Progress")
 
         if self.language == "Swedish":
-            return self.type.startswith('Daganteckning')
+            return self.type.startswith("Daganteckning")
 
         raise ValueError(f"Unsupported language: {self.language}")

@@ -16,7 +16,7 @@ def strip_delimeters(out_str: str) -> str:
     start = out_str.find(DELIMETERS["start"])
     if start != -1:
         # Strip everything before and including <discharge_summary>
-        out_str = out_str[(start + len(DELIMETERS["start"])):]
+        out_str = out_str[(start + len(DELIMETERS["start"])) :]
 
     end = out_str.rfind(DELIMETERS["end"])
     if end != -1:
