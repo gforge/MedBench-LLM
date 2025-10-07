@@ -1,10 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "medbench-llm"
 version = "0.1.0"
 requires-python = ">=3.12"
-
-[dependency-groups]
-main = [
+dependencies = [
     "langchain>=0.2.11,<0.4.0",
     "langchain-openai>=0.1.20,<0.4.0",
     "pandas>=2.2.2,<3.0.0",
@@ -13,16 +15,29 @@ main = [
     "pydantic>=2.8.2,<3.0.0",
     "python-dotenv>=1.0.1,<2.0.0",
     "jupyter>=1.0.0,<2.0.0",
-    "flake8>=7.1.0,<8.0.0",
-    "pylint>=3.2.6,<4.0.0",
-    "flake8-pyproject>=1.2.3,<2.0.0",
     "tiktoken>=0.7.0,<0.13.0",
     "tqdm>=4.66.5,<5.0.0",
 ]
-dev = ["nbstripout>=0.7.1,<0.8.0"]
+
+[project.optional-dependencies]
+dev = [
+    "flake8>=7.1.0,<8.0.0",
+    "pylint>=3.2.6,<4.0.0",
+    "flake8-pyproject>=1.2.3,<2.0.0",
+    "nbstripout>=0.7.1,<0.8.0",
+    "types-tqdm>=4.67.0.20250809",
+]
 
 [tool.uv]
-dev-dependencies = ["nbstripout>=0.7.1,<0.8.0"]
+dev-dependencies = [
+    "flake8>=7.1.0,<8.0.0",
+    "pylint>=3.2.6,<4.0.0",
+    "flake8-pyproject>=1.2.3,<2.0.0",
+    "nbstripout>=0.7.1,<0.8.0",
+]
+
+[tool.setuptools]
+packages = ["basic", "helpers"]
 
 [tool.isort]
 profile = "black"
@@ -34,11 +49,14 @@ use_parentheses = true
 ensure_newline_before_comments = true
 
 [tool.pylint.'MESSAGES CONTROL']
-max-line-length = 120
 disable = """
    missing-module-docstring,
    broad-exception-caught
 """
+
+[tool.pylint.DESIGN]
+max-line-length = 120
+max-attributes = 12
 
 [tool.flake8]
 max-line-length = 120

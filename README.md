@@ -18,10 +18,53 @@ Previous approaches (map-reduce, decompose, refine) have been removed as they di
 
 ## Usage
 
-1. **Setup**: Install the required dependencies using `uv sync`.
-2. **Data Preparation**: Prepare the EHR data in the specified format under `data/`.
-3. **Run Summarization**: Use `run_evaluation.py` to generate summaries from the EHR data.
-4. **Evaluation**: Use the MedBench platform to evaluate the generated summaries.
+### Setup
+
+1. Install dependencies:
+   ```bash
+   uv sync
+   ```
+
+2. Configure your Azure OpenAI credentials in a `.env` file:
+   ```bash
+   # Add your Azure OpenAI credentials
+   AZURE_OPENAI_API_KEY=your_key
+   AZURE_OPENAI_ENDPOINT=your_endpoint
+   ```
+
+### Running Evaluations
+
+You can run the evaluation using `uv run`:
+
+```bash
+# Run with default settings (Medicine specialty, original language, gpt-4-turbo)
+uv run python run_evaluation.py
+
+# Or using the shorter form
+uv run run_evaluation.py
+
+# Customize the evaluation with command-line arguments
+uv run python run_evaluation.py --specialty Surgery --language Swedish --model gpt-4o-mini
+
+# See all available options
+uv run python run_evaluation.py --help
+```
+
+**Available Options:**
+- `--specialty`: Medical specialty to filter cases (default: Medicine)
+- `--language`: Language filter (default: original)
+- `--model`: LLM model to use (choices: gpt-35, gpt-4o-mini, gpt-4-turbo)
+- `--temperature`: Temperature for generation (default: 0.0)
+- `--rate-limit`: Seconds between API calls (default: 60)
+- `--approach`: Summarization approach (default: basic)
+
+### Data Preparation
+
+Prepare the EHR data in the specified format under `data/processed/`.
+
+### Evaluation
+
+Use the MedBench platform to evaluate the generated summaries found in `data/output/`.
 
 ## Contributing
 

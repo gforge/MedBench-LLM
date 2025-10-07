@@ -1,88 +1,78 @@
 #! /usr/bin/env python
+"""Main entry point for running LLM evaluation on medical cases."""
+
 import logging
-import os
-import time
-from pathlib import Path
 
 from dotenv import load_dotenv
 from langchain.globals import set_verbose
-from tqdm import tqdm
 
-from basic.basic import get_dual_prompt
-from helpers import init_model, read_all_cases, strip_delimeters
+from basic.basic import summarize
+from helpers import (
+    CaseEvaluator,
+    EvaluationConfig,
+    init_model,
+    parse_args,
+    read_all_cases,
+)
 
 # Setup logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
-# Suppress some loggers
+# Suppress verbose loggers
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("langchain").setLevel(logging.WARNING)
 set_verbose(False)
 
-# Load azure credentials
+# Load environment variables (Azure credentials, etc.)
 load_dotenv()
 
-SPECIALTY = "Medicine"
-LANGUAGE = "original"
 
-# Setup paths
-project_folder = Path(os.getcwd())
-output_folder = project_folder / "data" / "output" / SPECIALTY
-case_dir = project_folder / "data" / "processed"
+def main():
+    """Main function to run the evaluation."""
+    # Parse command-line arguments and create configuration
+    args = parse_args()
+    config = EvaluationConfig.from_args(args)
 
-llm, model_id = init_model("gpt-4-turbo", temperature=0.0)
+    logging.info("Starting evaluation with configuration:")
+    logging.info("  Specialty: %s", config.specialty)
+    logging.info("  Language: %s", config.language)
+    logging.info("  Model: %s", config.model_name)
+    logging.info("  Temperature: %.1f", config.temperature)
+    logging.info("  Approach: %s", config.approach)
 
-if not case_dir.exists():
-    raise FileNotFoundError(f"Cases directory not found at {case_dir}")
+    # Validate data directory exists
+    if not config.data_dir.exists():
+        raise FileNotFoundError(f"Cases directory not found at {config.data_dir}")
 
-if not output_folder.exists():
-    output_folder.mkdir(parents=True)
+    # Initialize the language model
+    llm, model_id = init_model(config.model_name, temperature=config.temperature)
+    logging.info("Initialized model: %s", model_id)
 
-case_dict = read_all_cases(
-    base_dir=case_dir, filter_specialty=SPECIALTY, filter_language=LANGUAGE
-)
+    # Load cases
+    case_dict = read_all_cases(
+        base_dir=config.data_dir,
+        filter_specialty=config.specialty,
+        filter_language=config.language,
+    )
+    logging.info("Loaded %d cases", len(case_dict))
 
-print(f"Found {len(case_dict)} cases to process.")
+    if len(case_dict) == 0:
+        logging.warning("No cases found matching the specified filters.")
+        return
+
+    # Create evaluator and run
+    evaluator = CaseEvaluator(
+        config=config,
+        llm=llm,
+        model_id=model_id,
+        summarize_fn=summarize,
+    )
+
+    evaluator.run(case_dict)
 
 
-def save_output(dest: Path, file_name: str, out_str: str):
-    """
-    Save the output string to a file.
-    """
-    out_str = strip_delimeters(out_str)
-
-    with open(dest / file_name, "w", encoding="utf-8") as f:
-        f.write(out_str)
-
-
-start_time: float | None = None
-
-# Use tqdm to create a progress bar
-for case in tqdm(case_dict.values(), desc="Processing cases"):
-    logging.info("Processing case %s...", case.case_id)
-
-    # Pause until a minute has passed since the last request
-    if start_time is not None:
-        elapsed_time = time.time() - start_time
-        if elapsed_time < 60:
-            time.sleep(60 - elapsed_time)
-
-    # Update the start time
-    start_time = time.time()
-
-    try:
-        basic_out_str = get_dual_prompt(
-            llm=llm,
-            language=case.object.language,
-        ).invoke({"notes": case.text})
-
-        prefix = f"Summary_4_{case.case_id}@{case.language}@${model_id}"
-        save_output(output_folder, f"{prefix}@basic.txt", basic_out_str)
-
-        logging.info("Saved outputs for case %s", case.case_id)
-    except Exception as e:
-        logging.error("Error processing case %s: %s", case.case_id, str(e))
-
-logging.info("Processing complete.")
+if __name__ == "__main__":
+    main()
