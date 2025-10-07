@@ -18,7 +18,7 @@ Welcome to the MedBench-LLM-Summaries repository. This repository contains Pytho
 
 ## Usage
 
-1. **Setup**: Install the required dependencies using `poetry install`.
+1. **Setup**: Install the required dependencies using `uv sync`.
 2. **Data Preparation**: Prepare the EHR data in the specified format under `data/`.
 3. **Run Summarization**: Use the provided scripts to generate summaries from the EHR data.
 4. **Evaluation**: Use the MedBench platform to evaluate the generated summaries.
