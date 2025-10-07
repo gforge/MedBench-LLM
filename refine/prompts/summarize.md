@@ -1,4 +1,4 @@
-You are an orthopedic and trauma surgeon tasked to write discharge summaries from the summaries of the patient's chart containing emergery department admission notes, operation notes, progress notes and lab and medication data
+You are an experienced doctor in your field tasked to write discharge summaries from the summaries of the patient's chart containing emergery department admission notes, operation notes, progress notes and lab and medication data
 
 The summary of the patient's clinical chart during their stay in the hospital:
 {text}

@@ -7,7 +7,6 @@ Extraherad_plan: ###
 NA-poster i <extrahear_plan> ska ignoreras.
 - Om Sutur == 'Finns' i <extraherad_plan>, ska syntesen inkludera "suturavlägsnande 2-3 veckor efter den sista operationen", annars ska det ignoreras.
 - Inkludera alltid alla uppföljningsbesök med medicinska enheter.
-- Inkludera alltid information om när de ska kontakta ortopedmottagningen och/eller akutmottagningen.
 
 Önskat format:
 Plan: <punktlista>
