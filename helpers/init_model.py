@@ -1,8 +1,8 @@
-from typing import Literal
 from dataclasses import dataclass
+from typing import Literal
 
-from langchain_openai import AzureChatOpenAI
 import tiktoken
+from langchain_openai import AzureChatOpenAI
 
 
 @dataclass
@@ -30,7 +30,7 @@ class ModelDefinition:
         return f"{self.name}_{self.version}"
 
 
-AvailableModels = Literal["gpt-35", "gpt-4o-mini", "gpt-4-turbo"]
+AvailableModels = Literal["gpt-35", "gpt-4o-mini", "gpt-4-turbo", "gpt-5-mini"]
 
 available_models: dict[AvailableModels, ModelDefinition] = {
     "gpt-35": ModelDefinition(
@@ -47,6 +47,11 @@ available_models: dict[AvailableModels, ModelDefinition] = {
         deployment="gpt-4-turbo",
         name="gpt-4",
         version="turbo-2024-04-09",
+    ),
+    "gpt-5-mini": ModelDefinition(
+        deployment="gpt-5-mini",
+        name="gpt-5-mini",
+        version="2025-08-07",
     ),
 }
 

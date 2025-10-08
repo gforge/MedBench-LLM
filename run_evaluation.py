@@ -7,13 +7,7 @@ from dotenv import load_dotenv
 from langchain.globals import set_verbose
 
 from basic.basic import summarize
-from helpers import (
-    CaseEvaluator,
-    EvaluationConfig,
-    init_model,
-    parse_args,
-    read_all_cases,
-)
+from helpers import CaseEvaluator, EvaluationConfig, init_model, parse_args, read_all_cases
 
 # Setup logging
 logging.basicConfig(
