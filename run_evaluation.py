@@ -6,8 +6,16 @@ import logging
 from dotenv import load_dotenv
 from langchain.globals import set_verbose
 
+from agentic.reflection import ReflectionAgent
 from basic.basic import summarize
-from helpers import CaseEvaluator, EvaluationConfig, init_model, parse_args, read_all_cases
+from helpers import (
+    CaseEvaluator,
+    EvaluationConfig,
+    init_model,
+    parse_args,
+    read_all_cases,
+)
+from helpers.case import Case
 
 # Setup logging
 logging.basicConfig(
@@ -22,6 +30,39 @@ set_verbose(False)
 
 # Load environment variables (Azure credentials, etc.)
 load_dotenv()
+
+
+def get_summarize_function(approach: str, llm, language: str):
+    """Get the appropriate summarize function for the specified approach.
+
+    Args:
+        approach: The approach to use ("basic", "reflection", "hierarchical")
+        llm: The language model instance
+        language: The language for prompts
+
+    Returns:
+        A function that takes (llm, language, text) and returns summary or result dict
+    """
+    if approach == "basic":
+        return summarize
+    elif approach == "reflection":
+        agent = ReflectionAgent(llm, language, max_iterations=2)
+
+        def reflection_wrapper(llm, language, text):
+            # Convert text to Case object (basic case with just notes)
+            case = Case(
+                language=language,
+                case_id="temp",
+                specialty="",
+                notes_raw=text,
+            )
+            return agent.generate(case)
+
+        return reflection_wrapper
+    elif approach == "hierarchical":
+        raise NotImplementedError("Hierarchical approach not yet implemented")
+    else:
+        raise ValueError(f"Unknown approach: {approach}")
 
 
 def main():
@@ -57,12 +98,15 @@ def main():
         logging.warning("No cases found matching the specified filters.")
         return
 
+    # Get the appropriate summarize function for the approach
+    summarize_fn = get_summarize_function(config.approach, llm, config.language)
+
     # Create evaluator and run
     evaluator = CaseEvaluator(
         config=config,
         llm=llm,
         model_id=model_id,
-        summarize_fn=summarize,
+        summarize_fn=summarize_fn,
     )
 
     evaluator.run(case_dict)

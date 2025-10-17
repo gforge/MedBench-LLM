@@ -10,11 +10,24 @@ Welcome to the MedBench-LLM-Summaries repository. This repository contains Pytho
 - **Benchmarking**: Establish benchmarks to assess the quality and accuracy of LLM-generated summaries.
 - **Evaluation**: Implement methods to quantitatively and qualitatively evaluate the generated summaries.
 
-## Current Approach
+## Current Approaches
 
-This repository implements a **Basic** direct prompting approach where the entire EHR is provided to the LLM with a structured prompt to generate comprehensive discharge summaries.
+This repository implements multiple discharge summary generation approaches:
 
-Previous approaches (map-reduce, decompose, refine) have been removed as they didn't show significant differences in performance compared to the basic approach.
+### 1. **Basic** (Default)
+Direct prompting where the entire EHR is provided to the LLM with a structured prompt to generate comprehensive discharge summaries in a single shot.
+
+### 2. **Reflection** (Agentic)
+An agentic approach using iterative self-critique and refinement:
+- Generator creates initial draft
+- Critic evaluates completeness, accuracy, and coherence
+- Refinement improves based on critique
+- Iterates until quality threshold met (max 2 iterations)
+
+### 3. **Hierarchical** (Future)
+Multi-agent system with planning and specialization (under development).
+
+**Note:** Previous approaches (map-reduce, decompose, refine) have been removed as they didn't show significant differences in performance compared to the basic approach.
 
 ## Usage
 
@@ -34,21 +47,41 @@ Previous approaches (map-reduce, decompose, refine) have been removed as they di
 
 ### Running Evaluations
 
-You can run the evaluation using `uv run`:
-
+#### Basic Approach (Single-Shot)
 ```bash
-# Run with default settings (Medicine specialty, original language, gpt-4-turbo)
+# Run with default settings (Medicine specialty, original language)
 uv run python run_evaluation.py
 
-# Or using the shorter form
-uv run run_evaluation.py
+# Customize the evaluation
+uv run python run_evaluation.py \
+    --specialty Surgery \
+    --language Swedish \
+    --model gpt-4o-mini \
+    --approach basic
+```
 
-# Customize the evaluation with command-line arguments
-uv run python run_evaluation.py --specialty Surgery --language Swedish --model gpt-4o-mini
+#### Reflection Approach (Agentic)
+```bash
+# Use reflection for quality improvement
+uv run python run_evaluation.py \
+    --specialty Orthopaedics \
+    --language English \
+    --model gpt-4o-mini \
+    --approach reflection
+```
 
-# See all available options
+#### See All Options
+```bash
 uv run python run_evaluation.py --help
 ```
+
+### Output
+
+All evaluations save:
+- **Discharge summaries**: Text files in `data/output/<specialty>/`
+- **Metadata summary**: `metadata_summary.json` with token counts, timing, and approach-specific metrics
+
+**See [RUNNING_EVALUATIONS.md](RUNNING_EVALUATIONS.md) for detailed documentation, examples, and best practices.**
 
 **Available Options:**
 - `--specialty`: Medical specialty to filter cases (default: Medicine)

@@ -108,7 +108,7 @@ def parse_args() -> argparse.Namespace:
         "--approach",
         type=str,
         default="basic",
-        choices=["basic"],
+        choices=["basic", "reflection", "hierarchical"],
         help="Summarization approach to use",
     )
 
