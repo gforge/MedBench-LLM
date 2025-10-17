@@ -1,48 +1,61 @@
-Skapa en utskrivningsanteckning baserad på följande kliniska anteckningar. Anteckningar omges av trippla citationstecken:
+## Uppgift
+Skapa en utskrivningsanteckning från de kliniska anteckningarna nedan:
 
-"""
+```
 {notes}
-"""
+```
 
-<discharge_summary>
-# Huvuddiagnos
-[Primär diagnos med ICD-kod, t.ex. Primär knäartros (M17.1)]
+## Obligatoriskt format
 
-# Sekundärdiagnos
-[Sekundär diagnos med ICD-kod, t.ex. Hypertoni (I10)]
+### Huvuddiagnos
+Primär diagnos med ICD-10-kod
+*Exempel: Primär knäartros (M17.1)*
 
-# Procedurer
-[Om tillämpligt, ge en punktlista över procedurer. Inkludera: Procedurens namn, datum och kirurg. Exempel:
+### Sekundärdiagnos
+Lista sekundära diagnoser med ICD-10-koder
 
-Total knäprotes, 2023-08-15, Dr. Jane Smith]
-# Inskrivningsorsak
-[Ge en kort, fokuserad beskrivning av varför patienten blev inlagd.]
+### Procedurer
+Punktlista med:
+- Procedurnamn, datum, kirurgens namn
 
-# Medicinsk historia
-[Inkludera endast medicinsk historia som är direkt relevant för aktuell inläggning. Uteslut orelaterade tillstånd.]
+### Inskrivningsorsak
+Kort beskrivning av varför patienten lades in
 
-# Social historia
-[Inkludera endast social historia som direkt påverkar aktuell vård eller uppföljning. Exempel: rökstatus vid respiratoriska problem, boendesituation för utskrivningsplanering.]
+### Medicinsk historia
+Inkludera endast historia relevant för aktuell inläggning
 
-# Vårdförlopp
-[Skriv i narrativ stil, med fokus på:
-Förändringar i tillståndet
-Behandlingsframsteg
-Nyckellaboratorie- eller bildfynd. Organisera kronologiskt. Använd tydliga inledningsmeningar för varje stycke. Avsluta med patientens utskrivningsdestination om tillgänglig.
-Exempel: "Patienten utvecklade feber efter operationen, som nådde 38,4°C dag 2. CRP-nivåerna ökade till ett maximum av 312 mg/L på den postoperativa dagen 3, och minskade sedan gradvis utan antibiotikabehandling. Detta tolkades som en normal postoperativ inflammatorisk reaktion. Patienten blev utskriven dag 5 efter operationen."]
+### Social historia
+Inkludera endast detaljer som påverkar aktuell vård eller utskrivningsplanering
 
-# Medicinändringar
-[Lista i punktform:
+### Vårdförlopp
+Skriv maximalt 3 stycken (3-5 meningar vardera):
+- Vad hände under vistelsen
+- Förändringar i patientens tillstånd
+- Behandlingsframsteg och viktiga fynd
+- Avsluta med utskrivningsdestination
 
-Nya mediciner (med dosering och frekvens)
-Utsatta mediciner
-Modifierade doser av befintliga mediciner.
-Inkludera inte tillfälliga mediciner som har upphört vid utskrivning (t.ex. IV-antibiotika, perioperativa mediciner).]
+*Exempel: "Patienten utvecklade feber efter operationen, som nådde 38,4°C dag 2. CRP-nivåerna ökade till ett maximum av 312 mg/L på den postoperativa dagen 3, och minskade sedan gradvis utan antibiotikabehandling. Detta tolkades som en normal postoperativ inflammatorisk reaktion. Patienten blev utskriven dag 5 efter operationen."*
 
-# Planering
-[Ge en punktlista som inkluderar:
+### Medicinändringar
+**Nya mediciner:**
+- Namn, dos, frekvens (skriv "två gånger dagligen" inte "2×/dag", "tre gånger dagligen" inte "1+1+1")
 
-Uppföljningsbesök (med specifika datum om tillgängliga)
-Specifika instruktioner eller försiktighetsåtgärder för patienten
-Eventuella väntande tester eller studier]
-</discharge_summary>
+**Utsatta mediciner:**
+- Lista upphörda mediciner
+
+**Ändrade mediciner:**
+- Notera dosändringar
+
+*Hoppa över tillfälliga mediciner som upphört vid utskrivning (t.ex. IV-antibiotika, perioperativa mediciner)*
+
+### Planering
+- Uppföljningsbesök (inkludera specifika datum om tillgängliga)
+- Specifika instruktioner för patienten
+- Eventuella väntande undersökningar eller studier
+
+---
+
+## Snabbreferens
+- **Max längd:** Vårdförlopp = 3 stycken
+- **Medicinformat:** "tre gånger dagligen" inte "1+1+1", "på kvällen" inte "0+0+1"
+- **Saknad info:** Skriv "Ej rapporterat"

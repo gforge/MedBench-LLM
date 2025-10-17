@@ -1,63 +1,61 @@
-Please create a discharge summary based on the following clinical notes. The notes are enclosed in triple quotes:
+## Task
+Create a discharge summary from the clinical notes below:
 
-"""
+```
 {notes}
-"""
+```
 
-Format the discharge summary as follows (use discharg_summary tag for delimiting the summary):
+## Required Format
 
-<discharge_summary>
-# Main diagnosis
-[Primary diagnosis with ICD code, e.g. Primary Knee Osteoarthritis (M17.1)]
+### Main Diagnosis
+Primary diagnosis with ICD-10 code
+*Example: Primary Knee Osteoarthritis (M17.1)*
 
-# Secondary diagnosis
-[Secondary diagnosis with ICD code, e.g. Hypertension (I10)]
+### Secondary Diagnosis
+List secondary diagnoses with ICD-10 codes
 
-# Procedures
-[If applicable, provide a bullet-point list of procedures. Include: Procedure name, date, and surgeon. Example:
+### Procedures
+Bullet list with:
+- Procedure name, date, surgeon name
 
-- Total Knee Arthroplasty, 2023-08-15, Dr. Jane Smith]
+### Reason for Admission
+Brief description of why patient was admitted
 
-# Reason for admission
-[Provide a brief, focused description of why the patient was admitted.]
+### Medical History
+Include only history relevant to current admission
 
-# Medical history
-[Include only the medical history directly relevant to the current admission. Omit unrelated conditions.]
+### Social History
+Include only details affecting current care or discharge planning
 
-# Social history
-[Include only social history that directly impacts current care or follow-up. Examples: smoking status for respiratory issues, living situation for discharge planning.]
+### Hospital Course
+Write 3 paragraphs maximum (3-5 sentences each):
+- What happened during the stay
+- Changes in patient condition
+- Treatment milestones and key findings
+- End with discharge destination
 
-# Hospital course
-[Write in narrative style, focusing on:
+*Example: "Patient developed postoperative fever, peaking at 38.4°C on day 2. CRP levels increased to a maximum of 312 mg/L on postoperative day 3, then gradually decreased without antibiotic administration. This was interpreted as a normal postoperative inflammatory response. The patient was discharged home on postoperative day 5."*
 
--   Significant occurrences
--   Changes in condition
--   Treatment milestones
--   Key laboratory or imaging findings Organize chronologically. Use clear topic sentences for each paragraph. End with the patient's discharge destination if available.
+### Medication Changes
+**New medications:**
+- Name, dose, frequency (write "twice daily" not "2×/day", "thrice daily" not "1+1+1")
 
-Example: "Patient developed postoperative fever, peaking at 38.4°C on day 2. CRP levels increased to a maximum of 312 mg/L on postoperative day 3, then gradually decreased without antibiotic administration. This was interpreted as a normal postoperative inflammatory response. The patient was discharged home on postoperative day 5."]
+**Discontinued medications:**
+- List medications stopped
 
-# Medication changes
-[List in bullet points:
+**Modified medications:**
+- Note dosage changes
 
--   New medications (with dosage and frequency)
--   Discontinued medications
--   Modified dosages of existing medications Do not include temporary medications discontinued at discharge (e.g., IV antibiotics, perioperative medications).]
+*Skip temporary medications stopped at discharge (e.g., IV antibiotics, perioperative medications)*
 
-# Plan
-[Provide a bullet-point list including:
+### Plan
+- Follow-up appointments (include specific dates if available)
+- Specific instructions for patient
+- Any pending tests or studies
 
--   Follow-up appointments (with specific dates if available)
--   Specific instructions or precautions for the patient
--   Any pending tests or studies]
-</discharge_summary>
+---
 
-
-Additional guidelines for this discharge summary:
-1. Limit the Hospital Course to a maximum of 3 paragraphs, each with 3-5 sentences, unless the case is particularly complex.
-2. Use ICD-10 codes for all diagnoses.
-3. Ensure the summary is comprehensive yet concise, focusing on information critical for continuity of care.
-4. If any section cannot be completed due to lack of information in the notes, write "Not reported" for that section.
-5. For medications use thrice daily instead of 1+1+1, or in the evening instead of 0+0+1 whenever possible.
-
-Please generate the discharge summary based on these instructions and the provided clinical notes.
+## Quick Reference
+- **Max length:** Hospital Course = 3 paragraphs
+- **Medication format:** "thrice daily" not "1+1+1", "in the evening" not "0+0+1"
+- **Missing info:** Write "Not reported"
