@@ -10,10 +10,34 @@ Can iterate multiple times until quality threshold met.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List
 
 from helpers.case import Case
-from helpers.read_prompt import read_prompt
+
+
+def read_prompt(module: str, prompt_type: str, prompt_name: str, language: str) -> str:
+    """
+    Helper to read prompts for agentic approaches.
+
+    Args:
+        module: Module name (e.g., "agentic") - currently unused
+        prompt_type: Type of approach (e.g., "reflection", "hierarchical")
+        prompt_name: Name of prompt (e.g., "generator_system")
+        language: Language (e.g., "English", "Swedish")
+
+    Returns:
+        Prompt content as string
+    """
+    prompt_path = (
+        Path(__file__).parent / "prompts" / language / prompt_type / f"{prompt_name}.md"
+    )
+
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
+
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
 @dataclass
@@ -120,12 +144,20 @@ class ReflectionAgent:
 
     def _generate_draft(self, notes: str) -> str:
         """Generate initial draft using basic prompt."""
-        messages = [
-            {"role": "system", "content": self.generator_system},
-            {"role": "user", "content": self.generator_human.format(notes=notes)},
-        ]
-        response = self.model.generate(messages)
-        return response
+        from langchain_core.output_parsers import StrOutputParser
+        from langchain_core.prompts import ChatPromptTemplate
+
+        chain = (
+            ChatPromptTemplate.from_messages(
+                [
+                    ("system", self.generator_system),
+                    ("human", self.generator_human),
+                ]
+            )
+            | self.model
+            | StrOutputParser()
+        )
+        return chain.invoke({"notes": notes})
 
     def _critique_draft(self, draft: str, notes: str) -> Critique:
         """
@@ -133,14 +165,20 @@ class ReflectionAgent:
 
         Returns structured critique for refinement.
         """
-        messages = [
-            {"role": "system", "content": self.critic_system},
-            {
-                "role": "user",
-                "content": self.critic_human.format(draft=draft, notes=notes),
-            },
-        ]
-        response = self.model.generate(messages)
+        from langchain_core.output_parsers import StrOutputParser
+        from langchain_core.prompts import ChatPromptTemplate
+
+        chain = (
+            ChatPromptTemplate.from_messages(
+                [
+                    ("system", self.critic_system),
+                    ("human", self.critic_human),
+                ]
+            )
+            | self.model
+            | StrOutputParser()
+        )
+        response = chain.invoke({"draft": draft, "notes": notes})
 
         # Parse structured critique
         # TODO: Implement proper parsing (JSON mode or structured output)
@@ -149,17 +187,22 @@ class ReflectionAgent:
 
     def _refine_draft(self, draft: str, critique: Critique, notes: str) -> str:
         """Refine draft based on critique."""
-        messages = [
-            {"role": "system", "content": self.refinement_system},
-            {
-                "role": "user",
-                "content": self.refinement_human.format(
-                    draft=draft, critique=critique.overall_feedback, notes=notes
-                ),
-            },
-        ]
-        response = self.model.generate(messages)
-        return response
+        from langchain_core.output_parsers import StrOutputParser
+        from langchain_core.prompts import ChatPromptTemplate
+
+        chain = (
+            ChatPromptTemplate.from_messages(
+                [
+                    ("system", self.refinement_system),
+                    ("human", self.refinement_human),
+                ]
+            )
+            | self.model
+            | StrOutputParser()
+        )
+        return chain.invoke(
+            {"draft": draft, "critique": critique.overall_feedback, "notes": notes}
+        )
 
     def _parse_critique(self, critique_text: str) -> Critique:
         """

@@ -9,7 +9,9 @@ Architectures:
 - hierarchical: Complex multi-agent system with planning and specialization
 """
 
-from .hierarchical import HierarchicalMultiAgent
 from .reflection import ReflectionAgent
 
-__all__ = ["ReflectionAgent", "HierarchicalMultiAgent"]
+# Hierarchical is under development, only import when needed
+# from .hierarchical import HierarchicalMultiAgent
+
+__all__ = ["ReflectionAgent"]

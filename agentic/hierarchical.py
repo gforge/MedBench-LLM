@@ -13,10 +13,34 @@ long hospital courses.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from helpers import Case
-from helpers.read_prompt import read_prompt
+
+
+def read_prompt(module: str, prompt_type: str, prompt_name: str, language: str) -> str:
+    """
+    Helper to read prompts for agentic approaches.
+
+    Args:
+        module: Module name (e.g., "agentic") - currently unused
+        prompt_type: Type of approach (e.g., "reflection", "hierarchical")
+        prompt_name: Name of prompt (e.g., "generator_system")
+        language: Language (e.g., "English", "Swedish")
+
+    Returns:
+        Prompt content as string
+    """
+    prompt_path = (
+        Path(__file__).parent / "prompts" / language / prompt_type / f"{prompt_name}.md"
+    )
+
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
+
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
 @dataclass
