@@ -38,7 +38,7 @@ Write 3 paragraphs maximum (3-5 sentences each):
 
 ### Medication Changes
 **New medications:**
-- Name, dose, frequency (write "twice daily" not "2×/day", "thrice daily" not "1+1+1")
+- Name, dose, frequency (write "twice daily" not "1x2", "thrice daily" not "1+1+1")
 
 **Discontinued medications:**
 - List medications stopped

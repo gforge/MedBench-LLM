@@ -34,11 +34,11 @@ Skriv maximalt 3 stycken (3-5 meningar vardera):
 - Behandlingsframsteg och viktiga fynd
 - Avsluta med utskrivningsdestination
 
-*Exempel: "Patienten utvecklade feber efter operationen, som nådde 38,4°C dag 2. CRP-nivåerna ökade till ett maximum av 312 mg/L på den postoperativa dagen 3, och minskade sedan gradvis utan antibiotikabehandling. Detta tolkades som en normal postoperativ inflammatorisk reaktion. Patienten blev utskriven dag 5 efter operationen."*
+*Exempel: "Patienten utvecklade feber efter operationen, som nådde 38,4°C dag 2. CRP-nivåerna ökade till ett maximum av 312 mg/L tre dagar efter operation, och minskade sedan gradvis utan antibiotikabehandling. Detta tolkades som en normal postoperativ inflammatorisk reaktion. Patienten skrevs ut fem dagar efter operationen till ordinarie boende."*
 
 ### Medicinändringar
 **Nya mediciner:**
-- Namn, dos, frekvens (skriv "två gånger dagligen" inte "2×/dag", "tre gånger dagligen" inte "1+1+1")
+- Namn, dos, frekvens (skriv "två gånger dagligen" inte "1x2", "tre gånger dagligen" inte "1+1+1")
 
 **Utsatta mediciner:**
 - Lista upphörda mediciner
