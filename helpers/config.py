@@ -86,7 +86,13 @@ def parse_args() -> argparse.Namespace:
         "--model",
         type=str,
         default="gpt-5-mini",
-        choices=["gpt-35", "gpt-4o-mini", "gpt-4-turbo", "gpt-5-mini"],
+        choices=[
+            "gpt-35",
+            "gpt-4o-mini",
+            "gpt-4-turbo",
+            "gpt-5-mini",
+            "gpt-5.1-chat",
+        ],
         help="LLM model to use for generation",
     )
 

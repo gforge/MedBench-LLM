@@ -17,6 +17,7 @@ class ModelDefinition:
     deployment: str
     name: str
     version: str
+    api_version: str | None = None
 
     def get_id(self) -> str:
         """
@@ -30,7 +31,13 @@ class ModelDefinition:
         return f"{self.name}_{self.version}"
 
 
-AvailableModels = Literal["gpt-35", "gpt-4o-mini", "gpt-4-turbo", "gpt-5-mini"]
+AvailableModels = Literal[
+    "gpt-35",
+    "gpt-4o-mini",
+    "gpt-4-turbo",
+    "gpt-5-mini",
+    "gpt-5.1-chat",
+]
 
 available_models: dict[AvailableModels, ModelDefinition] = {
     "gpt-35": ModelDefinition(
@@ -53,6 +60,12 @@ available_models: dict[AvailableModels, ModelDefinition] = {
         name="gpt-5-mini",
         version="2025-08-07",
     ),
+    "gpt-5.1-chat": ModelDefinition(
+        deployment="gpt-5.1",
+        name="gpt-5.1",
+        version="2025-11-13",
+        api_version="2024-12-01-preview",
+    ),
 }
 
 
@@ -70,12 +83,16 @@ def init_model(
     if not model:
         raise ValueError(f"Model {model_name} not found")
 
+    client_kwargs = dict(
+        deployment_name=model.deployment,
+        model_name=model.name,
+        temperature=temperature,
+    )
+    if model.api_version:
+        client_kwargs["api_version"] = model.api_version
+
     return (
-        AzureChatOpenAI(
-            deployment_name=model.deployment,
-            model_name=model.name,
-            temperature=temperature,
-        ),
+        AzureChatOpenAI(**client_kwargs),
         model.get_id() + f"@temp={temperature}",
     )
 
@@ -83,11 +100,13 @@ def init_model(
 def count_tokens(text: str, model_name: AvailableModels) -> int:
     """Count the number of tokens in the text for a specific model."""
 
-    # Map models to known tokenizer encodings
+    # Map logical model names to their tokenizer encodings
     model_to_encoding = {
-        "gpt-35-turbo-16k": "cl100k_base",
+        "gpt-35": "cl100k_base",
         "gpt-4o-mini": "o200k_base",
-        "gpt-4": "cl100k_base",
+        "gpt-4-turbo": "cl100k_base",
+        "gpt-5-mini": "o200k_base",
+        "gpt-5.1-chat": "o200k_base",
     }
     encoding_name = model_to_encoding.get(model_name)
     if not encoding_name:
