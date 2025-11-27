@@ -112,28 +112,57 @@ class ReflectionAgent:
                 - critiques: List of critiques from each iteration
                 - drafts: List of drafts from each iteration
         """
-        notes = case.to_prompt_string()
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # Get notes from Case object - use chart which contains all clinical notes
+        notes = case.chart
+        logger.info(f"Starting reflection agent for case {case.id}")
+        logger.info(f"  Input notes length: {len(notes)} characters")
 
         # Track all iterations for analysis
         drafts = []
         critiques = []
 
         # Step 1: Generate initial draft
+        logger.info("  [1/3] Generating initial draft...")
         draft = self._generate_draft(notes)
         drafts.append(draft)
+        logger.info(f"  ✓ Initial draft generated ({len(draft)} characters)")
 
         # Step 2-3: Critique and refine loop
-        for iteration in range(self.max_iterations):
+        logger.info(
+            f"  [2/3] Starting critique and refinement (max {self.max_iterations} iterations)..."
+        )
+        for iteration_num in range(self.max_iterations):
+            logger.info(
+                f"    Iteration {iteration_num + 1}/{self.max_iterations}: Generating critique..."
+            )
             critique = self._critique_draft(draft, notes)
             critiques.append(critique)
+            logger.info(
+                f"    ✓ Critique generated - Acceptable: {critique.is_acceptable}"
+            )
 
             # Check if acceptable
             if critique.is_acceptable:
+                logger.info(
+                    f"  ✓ Draft acceptable after {iteration_num + 1} critique(s)"
+                )
                 break
 
             # Refine based on critique
+            logger.info(
+                f"    Iteration {iteration_num + 1}/{self.max_iterations}: Refining draft..."
+            )
             draft = self._refine_draft(draft, critique, notes)
             drafts.append(draft)
+            logger.info(f"    ✓ Draft refined ({len(draft)} characters)")
+
+        logger.info(
+            f"  [3/3] Reflection complete - Total drafts: {len(drafts)}, Total critiques: {len(critiques)}"
+        )
 
         return {
             "summary": draft,
@@ -144,8 +173,13 @@ class ReflectionAgent:
 
     def _generate_draft(self, notes: str) -> str:
         """Generate initial draft using basic prompt."""
+        import logging
+
         from langchain_core.output_parsers import StrOutputParser
         from langchain_core.prompts import ChatPromptTemplate
+
+        logger = logging.getLogger(__name__)
+        logger.debug("      → API call: Generating draft")
 
         chain = (
             ChatPromptTemplate.from_messages(
@@ -157,7 +191,9 @@ class ReflectionAgent:
             | self.model
             | StrOutputParser()
         )
-        return chain.invoke({"notes": notes})
+        result = chain.invoke({"notes": notes})
+        logger.debug(f"      ← API response received ({len(result)} chars)")
+        return result
 
     def _critique_draft(self, draft: str, notes: str) -> Critique:
         """
@@ -165,8 +201,13 @@ class ReflectionAgent:
 
         Returns structured critique for refinement.
         """
+        import logging
+
         from langchain_core.output_parsers import StrOutputParser
         from langchain_core.prompts import ChatPromptTemplate
+
+        logger = logging.getLogger(__name__)
+        logger.debug("      → API call: Generating critique")
 
         chain = (
             ChatPromptTemplate.from_messages(
@@ -179,6 +220,7 @@ class ReflectionAgent:
             | StrOutputParser()
         )
         response = chain.invoke({"draft": draft, "notes": notes})
+        logger.debug(f"      ← API response received ({len(response)} chars)")
 
         # Parse structured critique
         # TODO: Implement proper parsing (JSON mode or structured output)
@@ -187,8 +229,13 @@ class ReflectionAgent:
 
     def _refine_draft(self, draft: str, critique: Critique, notes: str) -> str:
         """Refine draft based on critique."""
+        import logging
+
         from langchain_core.output_parsers import StrOutputParser
         from langchain_core.prompts import ChatPromptTemplate
+
+        logger = logging.getLogger(__name__)
+        logger.debug("      → API call: Refining draft")
 
         chain = (
             ChatPromptTemplate.from_messages(
@@ -200,9 +247,11 @@ class ReflectionAgent:
             | self.model
             | StrOutputParser()
         )
-        return chain.invoke(
+        result = chain.invoke(
             {"draft": draft, "critique": critique.overall_feedback, "notes": notes}
         )
+        logger.debug(f"      ← API response received ({len(result)} chars)")
+        return result
 
     def _parse_critique(self, critique_text: str) -> Critique:
         """

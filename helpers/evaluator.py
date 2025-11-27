@@ -93,11 +93,19 @@ class CaseEvaluator:
             start_time = time.time()
 
             # Generate summary (can return string or dict with metadata)
-            result = self.summarize_fn(
-                self.llm,
-                case.object.language,
-                case.text,
-            )
+            # Agentic approaches need the full Case object
+            if self.config.approach in ["reflection", "hierarchical"]:
+                result = self.summarize_fn(
+                    self.llm,
+                    case.object.language,
+                    case.object,  # Pass full Case object for agentic approaches
+                )
+            else:
+                result = self.summarize_fn(
+                    self.llm,
+                    case.object.language,
+                    case.text,  # Pass text for basic approach
+                )
 
             # Handle different return types
             if isinstance(result, dict):

@@ -41,22 +41,18 @@ def get_summarize_function(approach: str, llm, language: str):
         language: The language for prompts
 
     Returns:
-        A function that takes (llm, language, text) and returns summary or result dict
+        A function that takes (llm, language, text_or_case) and returns summary or result dict
+        For basic approach: text_or_case is a string (notes text)
+        For agentic approaches: text_or_case is a Case object
     """
     if approach == "basic":
         return summarize
     elif approach == "reflection":
         agent = ReflectionAgent(llm, language, max_iterations=2)
 
-        def reflection_wrapper(llm, language, text):
-            # Convert text to Case object (basic case with just notes)
-            case = Case(
-                language=language,
-                case_id="temp",
-                specialty="",
-                notes_raw=text,
-            )
-            return agent.generate(case)
+        def reflection_wrapper(llm, language, case_obj):
+            # case_obj is the full Case object
+            return agent.generate(case_obj)
 
         return reflection_wrapper
     elif approach == "hierarchical":
