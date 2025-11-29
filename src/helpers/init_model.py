@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 import tiktoken
 from langchain_openai import AzureChatOpenAI
@@ -69,9 +69,7 @@ available_models: dict[AvailableModels, ModelDefinition] = {
 }
 
 
-def init_model(
-    model_name: AvailableModels, temperature: float
-) -> tuple[AzureChatOpenAI, str]:
+def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureChatOpenAI, str]:
     """
     Initialize a language model for a given model name and temperature.
 
@@ -83,7 +81,7 @@ def init_model(
     if not model:
         raise ValueError(f"Model {model_name} not found")
 
-    client_kwargs = dict(
+    client_kwargs: dict[str, Any] = dict(
         deployment_name=model.deployment,
         model_name=model.name,
         temperature=temperature,

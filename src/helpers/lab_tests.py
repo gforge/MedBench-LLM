@@ -16,7 +16,7 @@ class LabTest(BaseModel):
     date: date
     time: str
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Returns a string representation of the lab test as it would
         be represented in a report

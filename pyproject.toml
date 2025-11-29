@@ -6,6 +6,21 @@ build-backend = "setuptools.build_meta"
 name = "medbench-llm"
 version = "0.1.0"
 requires-python = ">=3.12"
+description = "LLM tooling and evaluation utilities for MedBench."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "Max Gordon", email = "max.gordon@ki.se" },
+]
+keywords = ["llm", "medical", "evaluation", "medbench"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
 dependencies = [
     "langchain>=0.2.11,<0.4.0",
     "langchain-openai>=0.1.20,<0.4.0",
@@ -17,27 +32,31 @@ dependencies = [
     "jupyter>=1.0.0,<2.0.0",
     "tiktoken>=0.7.0,<0.13.0",
     "tqdm>=4.66.5,<5.0.0",
-]
-
-[project.optional-dependencies]
-dev = [
-    "flake8>=7.1.0,<8.0.0",
-    "pylint>=3.2.6,<4.0.0",
-    "flake8-pyproject>=1.2.3,<2.0.0",
-    "nbstripout>=0.7.1,<0.8.0",
     "types-tqdm>=4.67.0.20250809",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
+    "black>=24.0.0,<25.0.0",
     "flake8>=7.1.0,<8.0.0",
+    "mypy>=1.19.0",
     "pylint>=3.2.6,<4.0.0",
     "flake8-pyproject>=1.2.3,<2.0.0",
     "nbstripout>=0.7.1,<0.8.0",
 ]
 
 [tool.setuptools]
-packages = ["basic", "helpers"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"helpers" = ["py.typed"]
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
@@ -62,3 +81,14 @@ max-attributes = 12
 max-line-length = 120
 per-file-ignores = ['__init__.py:F401']
 count = true
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+exclude = [
+    '.venv',
+    '__pycache__',
+    '.mypy_cache',
+]

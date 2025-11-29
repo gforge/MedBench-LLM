@@ -9,17 +9,15 @@ class Medication(BaseModel):
     Holds the information of a single medication
     """
 
-    medication: str = Field(..., example="Losartad Comp (Losartan/Hydrochlortiazide)")
-    way_of_administration: str = Field(..., example="PO", alias="wayOfAdministration")
-    strength: Union[str, int, float] = Field(..., example="50/12,5")
-    unit: str = Field(..., example="mg")
-    times_per_day: Union[str, int, float, None] = Field(
-        ..., example="1+0+0", alias="timesPerDay"
-    )
+    medication: str = Field(description="Medication name")
+    way_of_administration: str = Field(alias="wayOfAdministration", description="Route of administration")
+    strength: Union[str, int, float] = Field(description="Medication strength")
+    unit: str = Field(description="Unit of measurement")
+    times_per_day: Union[str, int, float, None] = Field(alias="timesPerDay", description="Dosage schedule")
 
     date: date
 
-    def to_string(self):
+    def to_string(self) -> str:
         """
         Returns a string representation of the medication as it would
         be represented in a report

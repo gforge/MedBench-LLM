@@ -178,9 +178,7 @@ class DischargeEvaluator:
             accuracy_score=self.evaluate_accuracy(summary, notes),
             redundancy_score=self.evaluate_redundancy(summary),
             icd10_accuracy=self.evaluate_icd10(summary, reference_codes or []),
-            medication_accuracy=self.evaluate_medications(
-                summary, reference_meds or {}
-            ),
+            medication_accuracy=self.evaluate_medications(summary, reference_meds or {}),
             total_tokens=metadata.get("total_tokens", 0) if metadata else 0,
             num_api_calls=metadata.get("num_api_calls", 1) if metadata else 1,
             latency_seconds=metadata.get("latency_seconds", 0) if metadata else 0,
@@ -200,7 +198,7 @@ class DischargeEvaluator:
         Returns:
             Summary statistics for comparison
         """
-        by_approach = {}
+        by_approach: dict[str, list[EvaluationResult]] = {}
         for result in results:
             if result.approach not in by_approach:
                 by_approach[result.approach] = []
@@ -210,22 +208,14 @@ class DischargeEvaluator:
         for approach, approach_results in by_approach.items():
             comparison[approach] = {
                 "n": len(approach_results),
-                "completeness_mean": sum(r.completeness_score for r in approach_results)
-                / len(approach_results),
-                "accuracy_mean": sum(r.accuracy_score for r in approach_results)
-                / len(approach_results),
-                "redundancy_mean": sum(r.redundancy_score for r in approach_results)
-                / len(approach_results),
-                "icd10_mean": sum(r.icd10_accuracy for r in approach_results)
-                / len(approach_results),
-                "medication_mean": sum(r.medication_accuracy for r in approach_results)
-                / len(approach_results),
-                "tokens_mean": sum(r.total_tokens for r in approach_results)
-                / len(approach_results),
-                "calls_mean": sum(r.num_api_calls for r in approach_results)
-                / len(approach_results),
-                "latency_mean": sum(r.latency_seconds for r in approach_results)
-                / len(approach_results),
+                "completeness_mean": sum(r.completeness_score for r in approach_results) / len(approach_results),
+                "accuracy_mean": sum(r.accuracy_score for r in approach_results) / len(approach_results),
+                "redundancy_mean": sum(r.redundancy_score for r in approach_results) / len(approach_results),
+                "icd10_mean": sum(r.icd10_accuracy for r in approach_results) / len(approach_results),
+                "medication_mean": sum(r.medication_accuracy for r in approach_results) / len(approach_results),
+                "tokens_mean": sum(r.total_tokens for r in approach_results) / len(approach_results),
+                "calls_mean": sum(r.num_api_calls for r in approach_results) / len(approach_results),
+                "latency_mean": sum(r.latency_seconds for r in approach_results) / len(approach_results),
             }
 
         return comparison
@@ -256,6 +246,4 @@ class DischargeEvaluator:
         with open(output_file, "w") as f:
             json.dump(human_eval_data, f, indent=2)
 
-        print(
-            f"Exported {len(human_eval_data)} summaries for human evaluation to {output_file}"
-        )
+        print(f"Exported {len(human_eval_data)} summaries for human evaluation to {output_file}")

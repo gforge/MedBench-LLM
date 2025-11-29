@@ -33,9 +33,7 @@ class NoteSection:
         """
         self.language = language
         self.raw = raw.strip()
-        self.type, self.date, self.time, self.author, self.content = self._parse_raw(
-            raw
-        )
+        self.type, self.date, self.time, self.author, self.content = self._parse_raw(raw)
 
     def _parse_raw(self, raw: str):
         lines = raw.strip().split("\n")
@@ -110,9 +108,7 @@ class NoteSection:
         """
         content_has_header1 = any(line.startswith("# ") for line in content_lines)
         if content_has_header1:
-            content_lines = [
-                f"#{line}" if line.startswith("# ") else line for line in content_lines
-            ]
+            content_lines = [f"#{line}" if line.startswith("# ") else line for line in content_lines]
         return "\n".join(content_lines)
 
     def days_between(self, other: "NoteSection") -> int:
@@ -125,7 +121,7 @@ class NoteSection:
         Returns:
             int: The number of days between the two notes.
         """
-        return (self.date - other.date).days
+        return int((self.date - other.date).days)
 
     @property
     def datetime(self) -> datetime:
@@ -161,9 +157,9 @@ class NoteSection:
         True if the note type is a progress note, False otherwise.
         """
         if self.language == "original" or self.language == "English":
-            return self.type.startswith("Progress")
+            return bool(self.type.startswith("Progress"))
 
         if self.language == "Swedish":
-            return self.type.startswith("Daganteckning")
+            return bool(self.type.startswith("Daganteckning"))
 
         raise ValueError(f"Unsupported language: {self.language}")

@@ -13,12 +13,10 @@ class Case(RawCase):
     of the prompts.
     """
 
-    def __init__(self, **data):
+    def __init__(self, **data) -> None:
         super().__init__(**data)
         self._sections = [
-            NoteSection(raw, language=self.language)
-            for raw in re.split("(^|\n)# ", self.chart)
-            if raw.strip()
+            NoteSection(raw, language=self.language) for raw in re.split("(^|\n)# ", self.chart) if raw.strip()
         ]
         assert self._sections, f"No sections found in case: {self.chart}"
 
@@ -28,10 +26,9 @@ class Case(RawCase):
                 SingleDay(
                     date=single_date,
                     language=self.language,
+                    style=self.style,
                     notes=[s for s in self._sections if s.date == single_date],
-                    medications=[
-                        m for m in self.singleMedication if m.date == single_date
-                    ],
+                    medications=[m for m in self.singleMedication if m.date == single_date],
                     labs=[l for l in self.singleLab if l.date == single_date],
                 )
             )
@@ -45,33 +42,34 @@ class Case(RawCase):
         Returns a list of all dates in the case,
         note that even dates without notes are included.
         """
-        return [
-            self.first_date + timedelta(days=i)
-            for i in range((self.last_date - self.first_date).days + 1)
-        ]
+        return [self.first_date + timedelta(days=i) for i in range((self.last_date - self.first_date).days + 1)]
 
     @property
     def sections(self) -> list[NoteSection]:
         """
         Returns a list of note sections, e..g admission note, surgery note, progress note
         """
-        return self._sections
+        return list(self._sections)
 
     @property
     def first_date(self) -> datetime:
         """
         Returns the first date of the case
         """
-        return min(section.date for section in self.sections)
+        result = min(section.date for section in self.sections)
+        assert isinstance(result, datetime)
+        return result
 
     @property
     def last_date(self) -> datetime:
         """
         Returns the last date of the case
         """
-        return max(section.date for section in self.sections)
+        result = max(section.date for section in self.sections)
+        assert isinstance(result, datetime)
+        return result
 
-    def __extract_progress_notes(self):
+    def __extract_progress_notes(self) -> list[NoteSection]:
         typename: re.Pattern | None = None
         if self.language == "original" or self.language == "English":
             typename = re.compile(r"Progress")
@@ -87,11 +85,9 @@ class Case(RawCase):
         """
         Returns a string of all progress notes
         """
-        return "\n\n".join(
-            [note.to_markdown() for note in self.__extract_progress_notes()]
-        )
+        return "\n\n".join([note.to_markdown() for note in self.__extract_progress_notes()])
 
-    def __extract_surgery_notes(self):
+    def __extract_surgery_notes(self) -> list[NoteSection]:
         typename: re.Pattern | None = None
         if self.language == "original" or self.language == "English":
             typename = re.compile(r"^(Operation|Surgery)")
@@ -120,7 +116,8 @@ class Case(RawCase):
         if not notes:
             return "No surgery notes found"
 
-        return "\n\n".join([n.to_markdown() for n in notes])
+        result = "\n\n".join([n.to_markdown() for n in notes])
+        return str(result)
 
     @property
     def first_day_notes(self) -> str:
@@ -194,10 +191,7 @@ class Case(RawCase):
         note_filter_fn: Callable[[NoteSection], bool] = lambda d: d.is_progress_note
 
         return "\n\n".join(
-            [
-                date.to_markdown(include_meds=False, filter_note_fn=note_filter_fn)
-                for date in selected_dates
-            ]
+            [date.to_markdown(include_meds=False, filter_note_fn=note_filter_fn) for date in selected_dates]
         )
 
     @property
@@ -205,9 +199,7 @@ class Case(RawCase):
         """
         Returns all medications in the case
         """
-        return "\n\n".join(
-            [d.get_medications_list(include_header=True) for d in self.daily_data]
-        )
+        return "\n\n".join([d.get_medications_list(include_header=True) for d in self.daily_data])
 
     def __rep__(self):
         labs = f"{len(self.singleLab)} labs"

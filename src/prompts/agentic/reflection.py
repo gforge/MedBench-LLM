@@ -11,33 +11,13 @@ Can iterate multiple times until quality threshold met.
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+from typing import List
+
+from langchain_core.language_models import BaseChatModel
 
 from helpers.case import Case
-
-
-def read_prompt(module: str, prompt_type: str, prompt_name: str, language: str) -> str:
-    """
-    Helper to read prompts for agentic approaches.
-
-    Args:
-        module: Module name (e.g., "agentic") - currently unused
-        prompt_type: Type of approach (e.g., "reflection", "hierarchical")
-        prompt_name: Name of prompt (e.g., "generator_system")
-        language: Language (e.g., "English", "Swedish")
-
-    Returns:
-        Prompt content as string
-    """
-    prompt_path = (
-        Path(__file__).parent / "prompts" / language / prompt_type / f"{prompt_name}.md"
-    )
-
-    if not prompt_path.exists():
-        raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
-
-    with open(prompt_path, "r", encoding="utf-8") as f:
-        return f.read()
+from helpers.read_prompt import read_single_prompt
+from helpers.summarize_result import SummarizeResult
 
 
 @dataclass
@@ -79,26 +59,17 @@ class ReflectionAgent:
         self.max_iterations = max_iterations
 
         # Load prompts
-        self.generator_system = read_prompt(
-            "agentic", "reflection", "generator_system", language
-        )
-        self.generator_human = read_prompt(
-            "agentic", "reflection", "generator_human", language
-        )
-        self.critic_system = read_prompt(
-            "agentic", "reflection", "critic_system", language
-        )
-        self.critic_human = read_prompt(
-            "agentic", "reflection", "critic_human", language
-        )
-        self.refinement_system = read_prompt(
-            "agentic", "reflection", "refinement_system", language
-        )
-        self.refinement_human = read_prompt(
-            "agentic", "reflection", "refinement_human", language
-        )
+        def read_prompt(name: str):
+            return read_single_prompt(name, prompt_path=Path("./prompts/agentic/reflection"), language=language)
 
-    def generate(self, case: Case) -> Dict:
+        self.generator_system = read_prompt("generator_system")
+        self.generator_human = read_prompt("generator_human")
+        self.critic_system = read_prompt("critic_system")
+        self.critic_human = read_prompt("critic_human")
+        self.refinement_system = read_prompt("refinement_system")
+        self.refinement_human = read_prompt("refinement_human")
+
+    def generate(self, case: Case) -> SummarizeResult:
         """
         Generate discharge summary using reflection loop.
 
@@ -106,11 +77,7 @@ class ReflectionAgent:
             case: Case object with clinical notes
 
         Returns:
-            Dict with:
-                - summary: Final discharge summary
-                - iterations: Number of iterations performed
-                - critiques: List of critiques from each iteration
-                - drafts: List of drafts from each iteration
+            SummarizeResult with summary and metadata.
         """
         import logging
 
@@ -124,52 +91,47 @@ class ReflectionAgent:
         # Track all iterations for analysis
         drafts = []
         critiques = []
+        api_calls = 0
 
         # Step 1: Generate initial draft
         logger.info("  [1/3] Generating initial draft...")
         draft = self._generate_draft(notes)
         drafts.append(draft)
+        api_calls += 1
         logger.info(f"  ✓ Initial draft generated ({len(draft)} characters)")
 
         # Step 2-3: Critique and refine loop
-        logger.info(
-            f"  [2/3] Starting critique and refinement (max {self.max_iterations} iterations)..."
-        )
+        logger.info(f"  [2/3] Starting critique and refinement (max {self.max_iterations} iterations)...")
         for iteration_num in range(self.max_iterations):
-            logger.info(
-                f"    Iteration {iteration_num + 1}/{self.max_iterations}: Generating critique..."
-            )
+            logger.info(f"    Iteration {iteration_num + 1}/{self.max_iterations}: Generating critique...")
             critique = self._critique_draft(draft, notes)
             critiques.append(critique)
-            logger.info(
-                f"    ✓ Critique generated - Acceptable: {critique.is_acceptable}"
-            )
+            api_calls += 1
+            logger.info(f"    ✓ Critique generated - Acceptable: {critique.is_acceptable}")
 
             # Check if acceptable
             if critique.is_acceptable:
-                logger.info(
-                    f"  ✓ Draft acceptable after {iteration_num + 1} critique(s)"
-                )
+                logger.info(f"  ✓ Draft acceptable after {iteration_num + 1} critique(s)")
                 break
 
             # Refine based on critique
-            logger.info(
-                f"    Iteration {iteration_num + 1}/{self.max_iterations}: Refining draft..."
-            )
+            logger.info(f"    Iteration {iteration_num + 1}/{self.max_iterations}: Refining draft...")
             draft = self._refine_draft(draft, critique, notes)
             drafts.append(draft)
+            api_calls += 1
             logger.info(f"    ✓ Draft refined ({len(draft)} characters)")
 
-        logger.info(
-            f"  [3/3] Reflection complete - Total drafts: {len(drafts)}, Total critiques: {len(critiques)}"
-        )
+        logger.info(f"  [3/3] Reflection complete - Total drafts: {len(drafts)}, Total critiques: {len(critiques)}")
 
-        return {
-            "summary": draft,
-            "iterations": len(drafts) - 1,  # -1 because first is initial
-            "critiques": critiques,
-            "drafts": drafts,
-        }
+        return SummarizeResult(
+            summary=draft,
+            num_api_calls=api_calls,
+            iterations=len(drafts) - 1,  # -1 because first is initial
+            extras={
+                "critiques": critiques,
+                "drafts": drafts,
+            },
+        )
 
     def _generate_draft(self, notes: str) -> str:
         """Generate initial draft using basic prompt."""
@@ -193,7 +155,7 @@ class ReflectionAgent:
         )
         result = chain.invoke({"notes": notes})
         logger.debug(f"      ← API response received ({len(result)} chars)")
-        return result
+        return str(result)
 
     def _critique_draft(self, draft: str, notes: str) -> Critique:
         """
@@ -247,11 +209,9 @@ class ReflectionAgent:
             | self.model
             | StrOutputParser()
         )
-        result = chain.invoke(
-            {"draft": draft, "critique": critique.overall_feedback, "notes": notes}
-        )
+        result = chain.invoke({"draft": draft, "critique": critique.overall_feedback, "notes": notes})
         logger.debug(f"      ← API response received ({len(result)} chars)")
-        return result
+        return str(result)
 
     def _parse_critique(self, critique_text: str) -> Critique:
         """
@@ -271,3 +231,19 @@ class ReflectionAgent:
             is_acceptable="ACCEPTABLE" in critique_text.upper(),
             overall_feedback=critique_text,
         )
+
+
+def summarize(llm: BaseChatModel, language: str, case: Case, max_iterations: int = 2) -> SummarizeResult:
+    """Generate a summary using the reflection approach.
+
+    Args:
+        llm: The language model instance.
+        language: The language for prompts and output.
+        case: The Case object containing all clinical data.
+        max_iterations: Maximum refinement iterations (default: 2).
+
+    Returns:
+        SummarizeResult with the summary and metadata.
+    """
+    agent = ReflectionAgent(model=llm, language=language, max_iterations=max_iterations)
+    return agent.generate(case)

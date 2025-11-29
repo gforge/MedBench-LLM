@@ -99,6 +99,42 @@ Prepare the EHR data in the specified format under `data/processed/`.
 
 Use the MedBench platform to evaluate the generated summaries found in `data/output/`.
 
+## Development
+
+### Installing Dev Dependencies
+
+```bash
+uv sync --group dev
+```
+
+### Type Checking with mypy
+
+Run type checks via `uv` to ensure the correct environment is used:
+
+```bash
+# Full project type-check
+uv run mypy src
+
+# Single file check (faster)
+uv run mypy src/prompts/agentic/reflection.py
+
+# Fresh run (ignore cached results)
+uv run mypy --no-incremental src
+```
+
+### Linting and Formatting
+
+```bash
+# Format code
+uv run black src
+
+# Lint with flake8
+uv run flake8 src
+
+# Lint with pylint
+uv run pylint src
+```
+
 ## Contributing
 
 We welcome contributions from the community. Please refer to our contribution guidelines for more information.

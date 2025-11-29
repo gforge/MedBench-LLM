@@ -3,9 +3,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict
+from typing import List
 
 from langchain_core.language_models import BaseChatModel
+from pydantic import BaseModel
 from tqdm import tqdm
 
 from .config import EvaluationConfig
@@ -13,6 +14,22 @@ from .init_model import count_tokens
 from .rate_limiter import RateLimiter
 from .read_all_cases import CaseDescAndData
 from .strip_delimeters import strip_delimeters
+from .summarize_result import SummarizeFn, SummarizeResult
+
+
+class CaseMetadata(BaseModel):
+    """Typed metadata record for each processed case."""
+
+    case_id: str
+    approach: str
+    latency_seconds: float
+    input_tokens: int
+    output_tokens: int
+    num_api_calls: int = 1
+    iterations: int | None = None
+    total_tokens: int = 0
+
+    model_config = {"extra": "ignore", "validate_assignment": True}
 
 
 class CaseEvaluator:
@@ -31,7 +48,7 @@ class CaseEvaluator:
         config: EvaluationConfig,
         llm: BaseChatModel,
         model_id: str,
-        summarize_fn: Callable[[BaseChatModel, str, str], Any],
+        summarize_fn: SummarizeFn,
     ):
         """Initialize the case evaluator.
 
@@ -39,14 +56,14 @@ class CaseEvaluator:
             config: Evaluation configuration
             llm: Language model instance
             model_id: String identifier for the model
-            summarize_fn: Function that takes (llm, language, text) and returns summary or result dict
+            summarize_fn: Function that takes (llm, language, case) and returns SummarizeResult
         """
-        self.config = config
-        self.llm = llm
-        self.model_id = model_id
-        self.summarize_fn = summarize_fn
-        self.rate_limiter = RateLimiter(config.rate_limit_seconds)
-        self.logger = logging.getLogger(__name__)
+        self.config: EvaluationConfig = config
+        self.llm: BaseChatModel = llm
+        self.model_id: str = model_id
+        self.summarize_fn: SummarizeFn = summarize_fn
+        self.rate_limiter: RateLimiter = RateLimiter(config.rate_limit_seconds)
+        self.logger: logging.Logger = logging.getLogger(__name__)
 
         # Track statistics
         self.total_cases = 0
@@ -54,7 +71,7 @@ class CaseEvaluator:
         self.failed_cases = 0
 
         # Track metadata across all cases
-        self.metadata_log = []
+        self.metadata_log: List[CaseMetadata] = []
         self.successful_cases = 0
         self.failed_cases = 0
 
@@ -92,74 +109,48 @@ class CaseEvaluator:
 
             start_time = time.time()
 
-            # Generate summary (can return string or dict with metadata)
-            # Agentic approaches need the full Case object
-            if self.config.approach in ["reflection", "hierarchical"]:
-                result = self.summarize_fn(
-                    self.llm,
-                    case.object.language,
-                    case.object,  # Pass full Case object for agentic approaches
-                )
-            else:
-                result = self.summarize_fn(
-                    self.llm,
-                    case.object.language,
-                    case.text,  # Pass text for basic approach
-                )
-
-            # Handle different return types
-            if isinstance(result, dict):
-                # Agentic approaches return dict with summary and metadata
-                summary = result.get("summary", "")
-                metadata = {
-                    "case_id": case.case_id,
-                    "approach": self.config.approach,
-                    "latency_seconds": time.time() - start_time,
-                    "input_tokens": count_tokens(case.text, self.config.model_name),
-                    "output_tokens": count_tokens(summary, self.config.model_name),
-                }
-                # Add any additional metadata from result
-                metadata.update({k: v for k, v in result.items() if k != "summary"})
-            else:
-                # Basic approach returns string
-                summary = result
-                metadata = {
-                    "case_id": case.case_id,
-                    "approach": self.config.approach,
-                    "latency_seconds": time.time() - start_time,
-                    "input_tokens": count_tokens(case.text, self.config.model_name),
-                    "output_tokens": count_tokens(summary, self.config.model_name),
-                    "num_api_calls": 1,
-                }
-
-            # Calculate total tokens
-            metadata["total_tokens"] = (
-                metadata["input_tokens"] + metadata["output_tokens"]
+            # Generate summary using unified interface
+            result: SummarizeResult = self.summarize_fn(
+                self.llm,
+                case.object.language,
+                case.object,
             )
 
-            # Save metadata
+            # Build metadata from result
+            metadata = CaseMetadata(
+                case_id=case.case_id,
+                approach=self.config.approach,
+                latency_seconds=time.time() - start_time,
+                input_tokens=count_tokens(case.text, self.config.model_name),
+                output_tokens=count_tokens(result.summary, self.config.model_name),
+                num_api_calls=result.num_api_calls,
+                iterations=result.iterations,
+            )
+            metadata.total_tokens = metadata.input_tokens + metadata.output_tokens
+
+            # Save metadata (keep typed objects in-memory)
             self.metadata_log.append(metadata)
 
             # Save output
             prefix = f"Summary_4_{case.case_id}@{case.language}@${self.model_id}"
             file_name = f"{prefix}@{self.config.approach}.txt"
-            self.save_output(self.config.output_dir, file_name, summary)
+            self.save_output(self.config.output_dir, file_name, result.summary)
 
             # Log summary statistics
             self.logger.info(
                 "Saved output for case %s (tokens: %d in/%d out, time: %.1fs)",
                 case.case_id,
-                metadata["input_tokens"],
-                metadata["output_tokens"],
-                metadata["latency_seconds"],
+                metadata.input_tokens,
+                metadata.output_tokens,
+                metadata.latency_seconds,
             )
 
             # Log additional info for agentic approaches
-            if "iterations" in metadata:
+            if metadata.iterations is not None:
                 self.logger.info(
                     "  └─ Iterations: %d, API calls: %d",
-                    metadata["iterations"],
-                    metadata.get("num_api_calls", 0),
+                    metadata.iterations,
+                    metadata.num_api_calls,
                 )
 
             return True
@@ -205,9 +196,7 @@ class CaseEvaluator:
         )
 
         if self.failed_cases > 0:
-            self.logger.warning(
-                "Warning: %d cases failed. Check logs for details.", self.failed_cases
-            )
+            self.logger.warning("Warning: %d cases failed. Check logs for details.", self.failed_cases)
 
         # Save metadata summary
         if self.metadata_log:
@@ -218,8 +207,8 @@ class CaseEvaluator:
         metadata_file = self.config.output_dir / "metadata_summary.json"
 
         # Calculate aggregate statistics
-        total_tokens = sum(m["total_tokens"] for m in self.metadata_log)
-        total_latency = sum(m["latency_seconds"] for m in self.metadata_log)
+        total_tokens = sum(m.total_tokens for m in self.metadata_log)
+        total_latency = sum(m.latency_seconds for m in self.metadata_log)
         avg_latency = total_latency / len(self.metadata_log) if self.metadata_log else 0
 
         summary = {
@@ -231,21 +220,17 @@ class CaseEvaluator:
             "total_tokens": total_tokens,
             "total_latency_seconds": total_latency,
             "average_latency_seconds": avg_latency,
-            "cases": self.metadata_log,
+            "cases": [m.model_dump() for m in self.metadata_log],
         }
 
         # Add approach-specific statistics
         if self.config.approach == "reflection":
-            total_iterations = sum(m.get("iterations", 0) for m in self.metadata_log)
-            total_api_calls = sum(m.get("num_api_calls", 0) for m in self.metadata_log)
+            total_iterations = sum((m.iterations or 0) for m in self.metadata_log)
+            total_api_calls = sum((m.num_api_calls or 0) for m in self.metadata_log)
             summary["total_iterations"] = total_iterations
             summary["total_api_calls"] = total_api_calls
-            summary["average_iterations"] = (
-                total_iterations / len(self.metadata_log) if self.metadata_log else 0
-            )
-            summary["average_api_calls"] = (
-                total_api_calls / len(self.metadata_log) if self.metadata_log else 0
-            )
+            summary["average_iterations"] = total_iterations / len(self.metadata_log) if self.metadata_log else 0
+            summary["average_api_calls"] = total_api_calls / len(self.metadata_log) if self.metadata_log else 0
 
         with open(metadata_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)

@@ -6,16 +6,16 @@ import logging
 from dotenv import load_dotenv
 from langchain.globals import set_verbose
 
-from agentic.reflection import ReflectionAgent
-from basic.basic import summarize
 from helpers import (
     CaseEvaluator,
     EvaluationConfig,
+    SummarizeFn,
     init_model,
     parse_args,
     read_all_cases,
 )
-from helpers.case import Case
+from prompts.agentic.reflection import summarize as reflection_summarize
+from prompts.basic.basic import summarize as basic_summarize
 
 # Setup logging
 logging.basicConfig(
@@ -32,29 +32,19 @@ set_verbose(False)
 load_dotenv()
 
 
-def get_summarize_function(approach: str, llm, language: str):
+def get_summarize_function(approach: str) -> SummarizeFn:
     """Get the appropriate summarize function for the specified approach.
 
     Args:
         approach: The approach to use ("basic", "reflection", "hierarchical")
-        llm: The language model instance
-        language: The language for prompts
 
     Returns:
-        A function that takes (llm, language, text_or_case) and returns summary or result dict
-        For basic approach: text_or_case is a string (notes text)
-        For agentic approaches: text_or_case is a Case object
+        A SummarizeFn that takes (llm, language, case) and returns SummarizeResult
     """
     if approach == "basic":
-        return summarize
+        return basic_summarize
     elif approach == "reflection":
-        agent = ReflectionAgent(llm, language, max_iterations=2)
-
-        def reflection_wrapper(llm, language, case_obj):
-            # case_obj is the full Case object
-            return agent.generate(case_obj)
-
-        return reflection_wrapper
+        return reflection_summarize
     elif approach == "hierarchical":
         raise NotImplementedError("Hierarchical approach not yet implemented")
     else:
@@ -95,7 +85,7 @@ def main():
         return
 
     # Get the appropriate summarize function for the approach
-    summarize_fn = get_summarize_function(config.approach, llm, config.language)
+    summarize_fn = get_summarize_function(config.approach)
 
     # Create evaluator and run
     evaluator = CaseEvaluator(

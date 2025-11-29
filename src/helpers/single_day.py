@@ -1,17 +1,18 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable, Literal
+from typing import Callable
 
 from .note_section import NoteSection
 from .raw_case import LabTest, Medication
+from .types import Language, Style
 
 
-def to_md_bullet_list(items: list[str]) -> str:
+def to_md_bullet_list(items: list[Medication] | list[LabTest]) -> str:
     """
     Converts a list of items into a markdown bullet list.
 
     Args:
-        items (list[str]): The list of items to convert.
+        items (list[Medication] | list[LabTest]): The list of items to convert (must have __str__).
 
     Returns:
         str: The markdown bullet list as a string.
@@ -26,16 +27,17 @@ class SingleDay:
     """
 
     date: datetime
-    language: Literal["original"]
+    language: Language
+    style: Style
     notes: list[NoteSection]
     medications: list[Medication]
     labs: list[LabTest]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SingleDay({self.date_str}, note: {len(self.notes)}, medications: {len(self.medications)}, labs: {len(self.labs)})"
 
     @property
-    def date_str(self):
+    def date_str(self) -> str:
         """
         Returns the date as a string in the format YYYY-MM-DD
         """
@@ -54,7 +56,7 @@ class SingleDay:
             ret = ""
         return ret + to_md_bullet_list(self.medications)
 
-    def get_labs_list(self, include_header: bool = True):
+    def get_labs_list(self, include_header: bool = True) -> str:
         """
         A markdown bullet list of lab tests preceded by the header # Labs YYYY-MM-DD HH:mm
         """
@@ -76,7 +78,7 @@ class SingleDay:
 
         return ret
 
-    def get_note_section(self, filter_fn: Callable[[NoteSection], bool] | None = None):
+    def get_note_section(self, filter_fn: Callable[[NoteSection], bool] | None = None) -> str:
         """
         A markdown section of the note preceded
 

@@ -32,9 +32,7 @@ def read_prompt(module: str, prompt_type: str, prompt_name: str, language: str) 
     Returns:
         Prompt content as string
     """
-    prompt_path = (
-        Path(__file__).parent / "prompts" / language / prompt_type / f"{prompt_name}.md"
-    )
+    prompt_path = Path(__file__).parent / "prompts" / language / prompt_type / f"{prompt_name}.md"
 
     if not prompt_path.exists():
         raise FileNotFoundError(f"Prompt file not found at {prompt_path}")
@@ -98,40 +96,20 @@ class HierarchicalMultiAgent:
         self.language = language
 
         # Load prompts for each agent
-        self.orchestrator_system = read_prompt(
-            "agentic", "hierarchical", "orchestrator_system", language
-        )
-        self.orchestrator_human = read_prompt(
-            "agentic", "hierarchical", "orchestrator_human", language
-        )
+        self.orchestrator_system = read_prompt("agentic", "hierarchical", "orchestrator_system", language)
+        self.orchestrator_human = read_prompt("agentic", "hierarchical", "orchestrator_human", language)
 
-        self.topic_identifier_system = read_prompt(
-            "agentic", "hierarchical", "topic_identifier_system", language
-        )
-        self.topic_identifier_human = read_prompt(
-            "agentic", "hierarchical", "topic_identifier_human", language
-        )
+        self.topic_identifier_system = read_prompt("agentic", "hierarchical", "topic_identifier_system", language)
+        self.topic_identifier_human = read_prompt("agentic", "hierarchical", "topic_identifier_human", language)
 
-        self.topic_agent_system = read_prompt(
-            "agentic", "hierarchical", "topic_agent_system", language
-        )
-        self.topic_agent_human = read_prompt(
-            "agentic", "hierarchical", "topic_agent_human", language
-        )
+        self.topic_agent_system = read_prompt("agentic", "hierarchical", "topic_agent_system", language)
+        self.topic_agent_human = read_prompt("agentic", "hierarchical", "topic_agent_human", language)
 
-        self.relationship_system = read_prompt(
-            "agentic", "hierarchical", "relationship_system", language
-        )
-        self.relationship_human = read_prompt(
-            "agentic", "hierarchical", "relationship_human", language
-        )
+        self.relationship_system = read_prompt("agentic", "hierarchical", "relationship_system", language)
+        self.relationship_human = read_prompt("agentic", "hierarchical", "relationship_human", language)
 
-        self.synthesis_system = read_prompt(
-            "agentic", "hierarchical", "synthesis_system", language
-        )
-        self.synthesis_human = read_prompt(
-            "agentic", "hierarchical", "synthesis_human", language
-        )
+        self.synthesis_system = read_prompt("agentic", "hierarchical", "synthesis_system", language)
+        self.synthesis_human = read_prompt("agentic", "hierarchical", "synthesis_human", language)
 
         self.qa_system = read_prompt("agentic", "hierarchical", "qa_system", language)
         self.qa_human = read_prompt("agentic", "hierarchical", "qa_human", language)
@@ -151,7 +129,7 @@ class HierarchicalMultiAgent:
                 - synthesis_steps: Steps in synthesis process
                 - qa_report: Quality assurance findings
         """
-        notes = case.to_prompt_string()
+        notes = case.chart
 
         # Step 1: Orchestrator creates execution plan
         plan = self._create_plan(notes)
@@ -172,9 +150,7 @@ class HierarchicalMultiAgent:
         structured_data = self._extract_structured_data(notes)
 
         # Step 6: Synthesize into coherent summary
-        draft = self._synthesize_summary(
-            topic_sections, relationships, structured_data, plan
-        )
+        draft = self._synthesize_summary(topic_sections, relationships, structured_data, plan)
 
         # Step 7: Quality assurance
         qa_report = self._quality_assurance(draft, notes)
@@ -228,9 +204,7 @@ class HierarchicalMultiAgent:
             {"role": "system", "content": self.relationship_system},
             {
                 "role": "user",
-                "content": self.relationship_human.format(
-                    topics=topic_summary, notes=notes
-                ),
+                "content": self.relationship_human.format(topics=topic_summary, notes=notes),
             },
         ]
         response = self.model.generate(messages)
@@ -238,9 +212,7 @@ class HierarchicalMultiAgent:
         # Parse into Relationship objects
         return self._parse_relationships(response)
 
-    def _generate_topic_section(
-        self, topic: Topic, notes: str, relationships: List[Relationship]
-    ) -> str:
+    def _generate_topic_section(self, topic: Topic, notes: str, relationships: List[Relationship]) -> str:
         """Generate section for a specific topic using specialized agent."""
         related = [r for r in relationships if topic.name in [r.topic1, r.topic2]]
         related_summary = "\n".join([f"- {r.description}" for r in related])
@@ -258,7 +230,7 @@ class HierarchicalMultiAgent:
             },
         ]
         response = self.model.generate(messages)
-        return response
+        return str(response)
 
     def _extract_structured_data(self, notes: str) -> Dict:
         """Extract medications, procedures, etc."""
@@ -276,13 +248,9 @@ class HierarchicalMultiAgent:
         plan: ExecutionPlan,
     ) -> str:
         """Synthesize topic sections into coherent discharge summary."""
-        sections_text = "\n\n".join(
-            [f"## {topic}\n{content}" for topic, content in topic_sections.items()]
-        )
+        sections_text = "\n\n".join([f"## {topic}\n{content}" for topic, content in topic_sections.items()])
 
-        relationships_text = "\n".join(
-            [f"- {r.topic1} → {r.topic2}: {r.description}" for r in relationships]
-        )
+        relationships_text = "\n".join([f"- {r.topic1} → {r.topic2}: {r.description}" for r in relationships])
 
         messages = [
             {"role": "system", "content": self.synthesis_system},
@@ -297,7 +265,7 @@ class HierarchicalMultiAgent:
             },
         ]
         response = self.model.generate(messages)
-        return response
+        return str(response)
 
     def _quality_assurance(self, draft: str, notes: str) -> Dict:
         """Final quality check."""

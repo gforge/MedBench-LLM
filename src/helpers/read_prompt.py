@@ -12,7 +12,7 @@ class DualPrompt:
     human: str
 
 
-prompt_cache = {}
+prompt_cache: dict[str, str] = {}
 
 
 def read_single_prompt(name: str, prompt_path: Path, language: str) -> str:
@@ -65,12 +65,8 @@ def read_dual_prompt(
     Read a dual prompt from the provided path.
     """
     try:
-        system = read_single_prompt(
-            name + "_system", prompt_path=prompt_path, language=language
-        )
-        human = read_single_prompt(
-            name + "_human", prompt_path=prompt_path, language=language
-        )
+        system = read_single_prompt(name + "_system", prompt_path=prompt_path, language=language)
+        human = read_single_prompt(name + "_human", prompt_path=prompt_path, language=language)
         return DualPrompt(system, human)
     except FileNotFoundError as e:
         msg = f"File not found for {name}"
