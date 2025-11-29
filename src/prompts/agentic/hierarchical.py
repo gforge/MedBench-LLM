@@ -12,11 +12,18 @@ Designed to handle complex cases with multiple diagnoses and
 long hospital courses.
 """
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from langchain_core.language_models import BaseChatModel
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+
 from helpers import Case
+
+logger = logging.getLogger(__name__)
 
 
 def read_prompt(module: str, prompt_type: str, prompt_name: str, language: str) -> str:
@@ -84,7 +91,7 @@ class HierarchicalMultiAgent:
     - QA agent validates quality
     """
 
-    def __init__(self, model, language: str = "English"):
+    def __init__(self, model: BaseChatModel, language: str = "English"):
         """
         Initialize the hierarchical multi-agent system.
 
@@ -113,6 +120,27 @@ class HierarchicalMultiAgent:
 
         self.qa_system = read_prompt("agentic", "hierarchical", "qa_system", language)
         self.qa_human = read_prompt("agentic", "hierarchical", "qa_human", language)
+
+        # Pre-build chains for each agent
+        self._orchestrator_chain = self._build_chain(self.orchestrator_system, self.orchestrator_human)
+        self._topic_identifier_chain = self._build_chain(self.topic_identifier_system, self.topic_identifier_human)
+        self._topic_agent_chain = self._build_chain(self.topic_agent_system, self.topic_agent_human)
+        self._relationship_chain = self._build_chain(self.relationship_system, self.relationship_human)
+        self._synthesis_chain = self._build_chain(self.synthesis_system, self.synthesis_human)
+        self._qa_chain = self._build_chain(self.qa_system, self.qa_human)
+
+    def _build_chain(self, system_prompt: str, human_prompt: str):
+        """Build a standard LCEL chain with system and human prompts."""
+        return (
+            ChatPromptTemplate.from_messages(
+                [
+                    ("system", system_prompt),
+                    ("human", human_prompt),
+                ]
+            )
+            | self.model
+            | StrOutputParser()
+        )
 
     def generate(self, case: Case) -> Dict:
         """
@@ -171,43 +199,31 @@ class HierarchicalMultiAgent:
 
     def _create_plan(self, notes: str) -> ExecutionPlan:
         """Orchestrator analyzes notes and creates execution plan."""
-        messages = [
-            {"role": "system", "content": self.orchestrator_system},
-            {"role": "user", "content": self.orchestrator_human.format(notes=notes)},
-        ]
-        response = self.model.generate(messages)
+        logger.debug("      → API call: Creating execution plan")
+        response = self._orchestrator_chain.invoke({"notes": notes})
+        logger.debug(f"      ← API response received ({len(response)} chars)")
 
         # Parse into ExecutionPlan
-        # TODO: Implement structured parsing
+        # TODO: Use structured output for proper parsing
         return self._parse_plan(response)
 
     def _identify_topics(self, notes: str) -> List[Topic]:
         """Identify clinical topics (diagnoses/problems) in notes."""
-        messages = [
-            {"role": "system", "content": self.topic_identifier_system},
-            {
-                "role": "user",
-                "content": self.topic_identifier_human.format(notes=notes),
-            },
-        ]
-        response = self.model.generate(messages)
+        logger.debug("      → API call: Identifying topics")
+        response = self._topic_identifier_chain.invoke({"notes": notes})
+        logger.debug(f"      ← API response received ({len(response)} chars)")
 
         # Parse into Topic objects
-        # TODO: Implement structured parsing
+        # TODO: Use structured output for proper parsing
         return self._parse_topics(response)
 
     def _map_relationships(self, topics: List[Topic], notes: str) -> List[Relationship]:
         """Map relationships between topics."""
         topic_summary = "\n".join([f"- {t.name} ({t.category})" for t in topics])
 
-        messages = [
-            {"role": "system", "content": self.relationship_system},
-            {
-                "role": "user",
-                "content": self.relationship_human.format(topics=topic_summary, notes=notes),
-            },
-        ]
-        response = self.model.generate(messages)
+        logger.debug("      → API call: Mapping relationships")
+        response = self._relationship_chain.invoke({"topics": topic_summary, "notes": notes})
+        logger.debug(f"      ← API response received ({len(response)} chars)")
 
         # Parse into Relationship objects
         return self._parse_relationships(response)
@@ -217,19 +233,16 @@ class HierarchicalMultiAgent:
         related = [r for r in relationships if topic.name in [r.topic1, r.topic2]]
         related_summary = "\n".join([f"- {r.description}" for r in related])
 
-        messages = [
-            {"role": "system", "content": self.topic_agent_system},
+        logger.debug(f"      → API call: Generating section for topic '{topic.name}'")
+        response = self._topic_agent_chain.invoke(
             {
-                "role": "user",
-                "content": self.topic_agent_human.format(
-                    topic=topic.name,
-                    category=topic.category,
-                    relationships=related_summary,
-                    notes=notes,
-                ),
-            },
-        ]
-        response = self.model.generate(messages)
+                "topic": topic.name,
+                "category": topic.category,
+                "relationships": related_summary,
+                "notes": notes,
+            }
+        )
+        logger.debug(f"      ← API response received ({len(response)} chars)")
         return str(response)
 
     def _extract_structured_data(self, notes: str) -> Dict:
@@ -252,28 +265,23 @@ class HierarchicalMultiAgent:
 
         relationships_text = "\n".join([f"- {r.topic1} → {r.topic2}: {r.description}" for r in relationships])
 
-        messages = [
-            {"role": "system", "content": self.synthesis_system},
+        logger.debug("      → API call: Synthesizing summary")
+        response = self._synthesis_chain.invoke(
             {
-                "role": "user",
-                "content": self.synthesis_human.format(
-                    sections=sections_text,
-                    relationships=relationships_text,
-                    medications=str(structured_data.get("medications", {})),
-                    procedures=str(structured_data.get("procedures", [])),
-                ),
-            },
-        ]
-        response = self.model.generate(messages)
+                "sections": sections_text,
+                "relationships": relationships_text,
+                "medications": str(structured_data.get("medications", {})),
+                "procedures": str(structured_data.get("procedures", [])),
+            }
+        )
+        logger.debug(f"      ← API response received ({len(response)} chars)")
         return str(response)
 
     def _quality_assurance(self, draft: str, notes: str) -> Dict:
         """Final quality check."""
-        messages = [
-            {"role": "system", "content": self.qa_system},
-            {"role": "user", "content": self.qa_human.format(draft=draft, notes=notes)},
-        ]
-        response = self.model.generate(messages)
+        logger.debug("      → API call: Quality assurance check")
+        response = self._qa_chain.invoke({"draft": draft, "notes": notes})
+        logger.debug(f"      ← API response received ({len(response)} chars)")
 
         # Parse QA report
         return {

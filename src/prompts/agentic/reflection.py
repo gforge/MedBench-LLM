@@ -9,28 +9,32 @@ This implements a simple agentic architecture with:
 Can iterate multiple times until quality threshold met.
 """
 
-from dataclasses import dataclass
+import logging
 from pathlib import Path
 from typing import List
 
 from langchain_core.language_models import BaseChatModel
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 
 from helpers.case import Case
 from helpers.read_prompt import read_single_prompt
 from helpers.summarize_result import SummarizeResult
 
+logger = logging.getLogger(__name__)
 
-@dataclass
-class Critique:
+
+class Critique(BaseModel):
     """Structured critique from the critic agent."""
 
-    completeness_score: float  # 0-1
-    accuracy_issues: List[str]
-    redundancy_issues: List[str]
-    coherence_issues: List[str]
-    temporal_issues: List[str]
-    is_acceptable: bool
-    overall_feedback: str
+    completeness_score: float = Field(ge=0, le=1, description="Score from 0-1 indicating completeness")
+    accuracy_issues: List[str] = Field(default_factory=list, description="List of accuracy problems found")
+    redundancy_issues: List[str] = Field(default_factory=list, description="List of redundant information")
+    coherence_issues: List[str] = Field(default_factory=list, description="List of coherence/flow problems")
+    temporal_issues: List[str] = Field(default_factory=list, description="List of timeline/chronology issues")
+    is_acceptable: bool = Field(description="Whether the draft meets quality standards")
+    overall_feedback: str = Field(description="Summary feedback for refinement")
 
 
 class ReflectionAgent:
@@ -79,10 +83,6 @@ class ReflectionAgent:
         Returns:
             SummarizeResult with summary and metadata.
         """
-        import logging
-
-        logger = logging.getLogger(__name__)
-
         # Get notes from Case object - use chart which contains all clinical notes
         notes = case.chart
         logger.info(f"Starting reflection agent for case {case.id}")
@@ -128,19 +128,13 @@ class ReflectionAgent:
             num_api_calls=api_calls,
             iterations=len(drafts) - 1,  # -1 because first is initial
             extras={
-                "critiques": critiques,
+                "critiques": [c.model_dump() for c in critiques],
                 "drafts": drafts,
             },
         )
 
     def _generate_draft(self, notes: str) -> str:
         """Generate initial draft using basic prompt."""
-        import logging
-
-        from langchain_core.output_parsers import StrOutputParser
-        from langchain_core.prompts import ChatPromptTemplate
-
-        logger = logging.getLogger(__name__)
         logger.debug("      → API call: Generating draft")
 
         chain = (
@@ -161,16 +155,12 @@ class ReflectionAgent:
         """
         Critique the draft against original notes.
 
-        Returns structured critique for refinement.
+        Uses structured output to get a properly formatted Critique object.
         """
-        import logging
-
-        from langchain_core.output_parsers import StrOutputParser
-        from langchain_core.prompts import ChatPromptTemplate
-
-        logger = logging.getLogger(__name__)
         logger.debug("      → API call: Generating critique")
 
+        # Use structured output for reliable parsing
+        structured_model = self.model.with_structured_output(Critique)
         chain = (
             ChatPromptTemplate.from_messages(
                 [
@@ -178,25 +168,16 @@ class ReflectionAgent:
                     ("human", self.critic_human),
                 ]
             )
-            | self.model
-            | StrOutputParser()
+            | structured_model
         )
-        response = chain.invoke({"draft": draft, "notes": notes})
-        logger.debug(f"      ← API response received ({len(response)} chars)")
-
-        # Parse structured critique
-        # TODO: Implement proper parsing (JSON mode or structured output)
-        # For now, return a simple critique object
-        return self._parse_critique(response)
+        result = chain.invoke({"draft": draft, "notes": notes})
+        # Cast since with_structured_output returns Any
+        critique = Critique.model_validate(result) if isinstance(result, dict) else result
+        logger.debug(f"      ← API response received (acceptable: {critique.is_acceptable})")
+        return critique
 
     def _refine_draft(self, draft: str, critique: Critique, notes: str) -> str:
         """Refine draft based on critique."""
-        import logging
-
-        from langchain_core.output_parsers import StrOutputParser
-        from langchain_core.prompts import ChatPromptTemplate
-
-        logger = logging.getLogger(__name__)
         logger.debug("      → API call: Refining draft")
 
         chain = (
@@ -212,25 +193,6 @@ class ReflectionAgent:
         result = chain.invoke({"draft": draft, "critique": critique.overall_feedback, "notes": notes})
         logger.debug(f"      ← API response received ({len(result)} chars)")
         return str(result)
-
-    def _parse_critique(self, critique_text: str) -> Critique:
-        """
-        Parse critique text into structured format.
-
-        TODO: Implement robust parsing (use JSON mode or structured output)
-        """
-        # Placeholder implementation
-        # In production, use structured output or careful parsing
-
-        return Critique(
-            completeness_score=0.8,
-            accuracy_issues=[],
-            redundancy_issues=[],
-            coherence_issues=[],
-            temporal_issues=[],
-            is_acceptable="ACCEPTABLE" in critique_text.upper(),
-            overall_feedback=critique_text,
-        )
 
 
 def summarize(llm: BaseChatModel, language: str, case: Case, max_iterations: int = 2) -> SummarizeResult:
