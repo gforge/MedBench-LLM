@@ -201,7 +201,7 @@ class HierarchicalMultiAgent:
         """Orchestrator analyzes notes and creates execution plan."""
         logger.debug("      → API call: Creating execution plan")
         response = self._orchestrator_chain.invoke({"notes": notes})
-        logger.debug(f"      ← API response received ({len(response)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(response))
 
         # Parse into ExecutionPlan
         # TODO: Use structured output for proper parsing
@@ -211,7 +211,7 @@ class HierarchicalMultiAgent:
         """Identify clinical topics (diagnoses/problems) in notes."""
         logger.debug("      → API call: Identifying topics")
         response = self._topic_identifier_chain.invoke({"notes": notes})
-        logger.debug(f"      ← API response received ({len(response)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(response))
 
         # Parse into Topic objects
         # TODO: Use structured output for proper parsing
@@ -223,7 +223,7 @@ class HierarchicalMultiAgent:
 
         logger.debug("      → API call: Mapping relationships")
         response = self._relationship_chain.invoke({"topics": topic_summary, "notes": notes})
-        logger.debug(f"      ← API response received ({len(response)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(response))
 
         # Parse into Relationship objects
         return self._parse_relationships(response)
@@ -233,7 +233,7 @@ class HierarchicalMultiAgent:
         related = [r for r in relationships if topic.name in [r.topic1, r.topic2]]
         related_summary = "\n".join([f"- {r.description}" for r in related])
 
-        logger.debug(f"      → API call: Generating section for topic '{topic.name}'")
+        logger.debug("      → API call: Generating section for topic '%s'", topic.name)
         response = self._topic_agent_chain.invoke(
             {
                 "topic": topic.name,
@@ -242,7 +242,7 @@ class HierarchicalMultiAgent:
                 "notes": notes,
             }
         )
-        logger.debug(f"      ← API response received ({len(response)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(response))
         return str(response)
 
     def _extract_structured_data(self, notes: str) -> Dict:
@@ -274,7 +274,7 @@ class HierarchicalMultiAgent:
                 "procedures": str(structured_data.get("procedures", [])),
             }
         )
-        logger.debug(f"      ← API response received ({len(response)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(response))
         return str(response)
 
     def _quality_assurance(self, draft: str, notes: str) -> Dict:

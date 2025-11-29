@@ -85,8 +85,8 @@ class ReflectionAgent:
         """
         # Get notes from Case object - use chart which contains all clinical notes
         notes = case.chart
-        logger.info(f"Starting reflection agent for case {case.id}")
-        logger.info(f"  Input notes length: {len(notes)} characters")
+        logger.info("Starting reflection agent for case %s", case.id)
+        logger.info("  Input notes length: %d characters", len(notes))
 
         # Track all iterations for analysis
         drafts = []
@@ -98,30 +98,30 @@ class ReflectionAgent:
         draft = self._generate_draft(notes)
         drafts.append(draft)
         api_calls += 1
-        logger.info(f"  ✓ Initial draft generated ({len(draft)} characters)")
+        logger.info("  ✓ Initial draft generated (%d characters)", len(draft))
 
         # Step 2-3: Critique and refine loop
-        logger.info(f"  [2/3] Starting critique and refinement (max {self.max_iterations} iterations)...")
+        logger.info("  [2/3] Starting critique and refinement (max %d iterations)...", self.max_iterations)
         for iteration_num in range(self.max_iterations):
-            logger.info(f"    Iteration {iteration_num + 1}/{self.max_iterations}: Generating critique...")
+            logger.info("    Iteration %d/%d: Generating critique...", iteration_num + 1, self.max_iterations)
             critique = self._critique_draft(draft, notes)
             critiques.append(critique)
             api_calls += 1
-            logger.info(f"    ✓ Critique generated - Acceptable: {critique.is_acceptable}")
+            logger.info("    ✓ Critique generated - Acceptable: %s", critique.is_acceptable)
 
             # Check if acceptable
             if critique.is_acceptable:
-                logger.info(f"  ✓ Draft acceptable after {iteration_num + 1} critique(s)")
+                logger.info("  ✓ Draft acceptable after %d critique(s)", iteration_num + 1)
                 break
 
             # Refine based on critique
-            logger.info(f"    Iteration {iteration_num + 1}/{self.max_iterations}: Refining draft...")
+            logger.info("    Iteration %d/%d: Refining draft...", iteration_num + 1, self.max_iterations)
             draft = self._refine_draft(draft, critique, notes)
             drafts.append(draft)
             api_calls += 1
-            logger.info(f"    ✓ Draft refined ({len(draft)} characters)")
+            logger.info("    ✓ Draft refined (%d characters)", len(draft))
 
-        logger.info(f"  [3/3] Reflection complete - Total drafts: {len(drafts)}, Total critiques: {len(critiques)}")
+        logger.info("  [3/3] Reflection complete - Total drafts: %d, Total critiques: %d", len(drafts), len(critiques))
 
         return SummarizeResult(
             summary=draft,
@@ -148,7 +148,7 @@ class ReflectionAgent:
             | StrOutputParser()
         )
         result = chain.invoke({"notes": notes})
-        logger.debug(f"      ← API response received ({len(result)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(result))
         return str(result)
 
     def _critique_draft(self, draft: str, notes: str) -> Critique:
@@ -173,7 +173,7 @@ class ReflectionAgent:
         result = chain.invoke({"draft": draft, "notes": notes})
         # Cast since with_structured_output returns Any
         critique = Critique.model_validate(result) if isinstance(result, dict) else result
-        logger.debug(f"      ← API response received (acceptable: {critique.is_acceptable})")
+        logger.debug("      ← API response received (acceptable: %s)", critique.is_acceptable)
         return critique
 
     def _refine_draft(self, draft: str, critique: Critique, notes: str) -> str:
@@ -191,7 +191,7 @@ class ReflectionAgent:
             | StrOutputParser()
         )
         result = chain.invoke({"draft": draft, "critique": critique.overall_feedback, "notes": notes})
-        logger.debug(f"      ← API response received ({len(result)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(result))
         return str(result)
 
 
