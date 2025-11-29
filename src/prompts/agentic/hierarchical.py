@@ -281,7 +281,7 @@ class HierarchicalMultiAgent:
         """Final quality check."""
         logger.debug("      → API call: Quality assurance check")
         response = self._qa_chain.invoke({"draft": draft, "notes": notes})
-        logger.debug(f"      ← API response received ({len(response)} chars)")
+        logger.debug("      ← API response received (%d chars)", len(response))
 
         # Parse QA report
         return {
