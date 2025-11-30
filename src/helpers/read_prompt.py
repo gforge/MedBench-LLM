@@ -38,12 +38,11 @@ def read_single_prompt(name: str, prompt_path: Path, language: str) -> str:
         if not language_path.exists():
             raise FileNotFoundError(f"Language directory not found at {language_path}")
 
-    base = Path("./prompting") / language_path
-    path = base / (name + ".md")
+    path = language_path / (name + ".md")
     if not path.exists():
         raise FileNotFoundError(
             f"File not found for {name}, looking for '{path}'",
-            f" looking in directory: {base}",
+            f" looking in directory: {language_path}",
         )
 
     try:

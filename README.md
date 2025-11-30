@@ -50,10 +50,10 @@ Multi-agent system with planning and specialization (under development).
 #### Basic Approach (Single-Shot)
 ```bash
 # Run with default settings (Medicine specialty, original language)
-uv run python run_evaluation.py
+uv run python src/run_evaluation.py
 
 # Customize the evaluation
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py \
     --specialty Surgery \
     --language Swedish \
     --model gpt-4o-mini \

@@ -19,7 +19,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 
 from helpers.case import Case
-from helpers.read_prompt import read_single_prompt
 from helpers.summarize_result import SummarizeResult
 
 logger = logging.getLogger(__name__)
@@ -62,9 +61,16 @@ class ReflectionAgent:
         self.language = language
         self.max_iterations = max_iterations
 
-        # Load prompts
-        def read_prompt(name: str):
-            return read_single_prompt(name, prompt_path=Path("./prompts/agentic/reflection"), language=language)
+        # Load prompts - need to include 'reflection' subdirectory in the path
+        prompt_base = Path(__file__).parent / "prompts"
+
+        def read_prompt(name: str) -> str:
+            # Prompts are in prompts/<Language>/reflection/<name>.md
+            lang_dir = language if language.lower() != "original" else "English"
+            prompt_file = prompt_base / lang_dir / "reflection" / (name + ".md")
+            if not prompt_file.exists():
+                raise FileNotFoundError(f"Prompt not found: {prompt_file}")
+            return prompt_file.read_text(encoding="utf-8")
 
         self.generator_system = read_prompt("generator_system")
         self.generator_human = read_prompt("generator_human")

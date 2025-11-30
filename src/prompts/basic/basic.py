@@ -5,9 +5,9 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableSerializable
 
-from src.helpers.case import Case
-from src.helpers.read_prompt import read_dual_prompt
-from src.helpers.summarize_result import SummarizeResult
+from helpers.case import Case
+from helpers.read_prompt import read_dual_prompt
+from helpers.summarize_result import SummarizeResult
 
 current_file_folder = Path(__file__).parent / "prompts"
 

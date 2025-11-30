@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 
 from langchain_core.language_models import BaseChatModel
+from openai import AuthenticationError, NotFoundError, PermissionDeniedError
 from pydantic import BaseModel
 from tqdm import tqdm
 
@@ -154,6 +155,24 @@ class CaseEvaluator:
                 )
 
             return True
+
+        except (NotFoundError, AuthenticationError, PermissionDeniedError) as e:
+            # Fatal API errors - don't continue processing
+            self.logger.error(
+                "Fatal API error processing case %s: %s",
+                case.case_id,
+                str(e),
+            )
+            raise  # Re-raise to stop the entire evaluation
+
+        except FileNotFoundError as e:
+            # All files must exist, so this is a critical error
+            self.logger.error(
+                "File not found for case %s: %s",
+                case.case_id,
+                str(e),
+            )
+            raise
 
         except Exception as e:
             self.logger.error(
