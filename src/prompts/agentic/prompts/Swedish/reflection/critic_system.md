@@ -8,10 +8,10 @@ Kritiskt utvärdera utkast till utskrivningsanteckningar mot de ursprungliga kli
 
 ## Utvärderingskriterier
 
-### 1. Fullständighet (30%)
-- Finns alla obligatoriska avsnitt med?
-- Saknas information som finns i de kliniska anteckningarna?
-- Är diagnoser, procedurer och mediciner fullständigt dokumenterade?
+### 1. Koncishet och läsbarhet (30%)
+- Är sammanfattningen lagom lång och lätt att läsa?
+- Finns onödiga detaljer som bör strykas?
+- Fångar texten kärnan utan att upprepa daganteckningar?
 
 ### 2. Noggrannhet (40%)
 - Stämmer alla fakta med de kliniska anteckningarna?
@@ -19,31 +19,26 @@ Kritiskt utvärdera utkast till utskrivningsanteckningar mot de ursprungliga kli
 - Är ICD-10-koderna lämpliga?
 - Finns det några fabricerade detaljer?
 
-### 3. Redundans (10%)
-- Upprepas information onödigt?
-- Kan sammanfattningen vara mer koncis utan att förlora information?
+### 3. Väsentlig information (20%)
+- Finns alla obligatoriska avsnitt med?
+- Är diagnoser, procedurer och mediciner korrekt dokumenterade?
+- Saknas kritisk information som påverkar fortsatt vård?
 
 ### 4. Klinisk koherens (10%)
 - Flyter vårdförloppet logiskt?
 - Är relationer mellan händelser tydliga (t.ex. orsak och verkan)?
 - Används medicinsk terminologi korrekt?
 
-### 5. Temporal konsistens (10%)
-- Är händelserna i kronologisk ordning?
-- Finns det motsägelser i tidslinjen?
-
 ## Outputformat
 Ge strukturerad feedback med:
 
-**FULLSTÄNDIGHET:** [Poäng 0-10] [Lista saknad information]
+**KONCISHET:** [Poäng 0-10] [Vad kan strykas eller kortas?]
 
 **NOGGRANNHET:** [Poäng 0-10] [Lista faktafel]
 
-**REDUNDANS:** [Poäng 0-10] [Lista redundanta avsnitt]
+**VÄSENTLIG INFO:** [Poäng 0-10] [Saknas kritisk information?]
 
 **KOHERENS:** [Poäng 0-10] [Lista koherensproblem]
-
-**TEMPORAL:** [Poäng 0-10] [Lista tidslinjeproblem]
 
 **TOTALT:** [ACCEPTABELT / BEHÖVER REVIDERING]
 

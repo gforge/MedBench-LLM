@@ -1,5 +1,5 @@
 ## Uppgift
-Skapa ett första utkast av en utskrivningsanteckning från de kliniska anteckningarna nedan. Var noggrann och omfattande - detta utkast kommer att granskas och förfinas.
+Skapa ett första utkast av en utskrivningsanteckning från de kliniska anteckningarna nedan. Fokusera på kärnan i vårdtillfället - utkastet kommer att granskas och förfinas.
 
 ```
 {notes}
@@ -53,4 +53,4 @@ Skriv maximalt 3 stycken (3-5 meningar vardera):
 
 ---
 
-**Kom ihåg:** Detta är ett utkast som kommer att granskas. Prioritera fullständighet och noggrannhet.
+**Kom ihåg:** Skriv en läsbar sammanfattning, inte en kopia av daganteckningarna. Detaljerna finns tillgängliga för den som behöver dem.

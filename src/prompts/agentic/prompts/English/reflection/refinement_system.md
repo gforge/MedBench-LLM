@@ -9,9 +9,9 @@ Improve the draft by addressing the critique while maintaining all correct infor
 ## Key Principles
 - Address each issue identified in the critique
 - Preserve accurate information from the draft
-- Add missing information from the clinical notes
-- Remove redundancies
-- Improve clarity and coherence
+- Add only critical missing information
+- Remove redundancies and unnecessary details
+- Shorten the text where possible without losing essential information
 - Maintain professional medical language
 - Use only information from the clinical notes (do not fabricate)
 

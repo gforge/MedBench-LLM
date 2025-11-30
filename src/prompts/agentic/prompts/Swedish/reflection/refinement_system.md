@@ -9,9 +9,9 @@ Förbättra utkastet genom att åtgärda kritiken samtidigt som all korrekt info
 ## Grundprinciper
 - Åtgärda varje problem som identifierats i kritiken
 - Bevara korrekt information från utkastet
-- Lägg till saknad information från de kliniska anteckningarna
-- Ta bort redundanser
-- Förbättra tydlighet och koherens
+- Lägg till endast kritisk saknad information
+- Ta bort redundanser och onödiga detaljer
+- Förkorta texten där det är möjligt utan att tappa väsentlig information
 - Behåll professionellt medicinskt språk
 - Använd endast information från de kliniska anteckningarna (fabricera inte)
 

@@ -17,4 +17,4 @@ Utvärdera detta utkast till utskrivningsanteckning mot de ursprungliga kliniska
 3. Ge specifik, handlingskraftig feedback för förfining
 4. Avgör om utkastet är ACCEPTABELT eller BEHÖVER REVIDERING
 
-Fokusera på klinisk noggrannhet och fullständighet framför stilistiska frågor.
+Balansera klinisk noggrannhet med läsbarhet. En bra sammanfattning fångar kärnan i vårdtillfället - detaljerna finns tillgängliga i daganteckningarna för den som behöver dem.

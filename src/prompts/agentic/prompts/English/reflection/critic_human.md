@@ -17,4 +17,4 @@ Evaluate this discharge summary draft against the original clinical notes. Ident
 3. Provide specific, actionable feedback for refinement
 4. Determine if the draft is ACCEPTABLE or NEEDS REVISION
 
-Focus on clinical accuracy and completeness above stylistic concerns.
+Balance clinical accuracy with readability. A good summary captures the essence of the hospital stay - details are available in the daily notes for those who need them.

@@ -1,5 +1,5 @@
 ## Task
-Create an initial draft of a discharge summary from the clinical notes below. Be thorough and comprehensive - this draft will be reviewed and refined.
+Create an initial draft of a discharge summary from the clinical notes below. Focus on the essence of the hospital stay - this draft will be reviewed and refined.
 
 ```
 {notes}
@@ -53,4 +53,4 @@ Write 3 paragraphs maximum (3-5 sentences each):
 
 ---
 
-**Remember:** This is a draft that will be reviewed. Prioritize completeness and accuracy.
+**Remember:** Write a readable summary, not a copy of the daily notes. Details are available for those who need them.
