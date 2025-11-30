@@ -1,8 +1,43 @@
+import logging
+import os
+import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
 import tiktoken
 from langchain_openai import AzureChatOpenAI
+
+logger = logging.getLogger(__name__)
+
+
+def _clean_azure_endpoint() -> None:
+    """Clean the Azure OpenAI endpoint URL in environment variables.
+
+    Removes any path components after the base URL (e.g., /openai/responses).
+    The endpoint should be just the base URL like:
+    - https://xxx.openai.azure.com/
+    - https://xxx.cognitiveservices.azure.com/
+    """
+    endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
+    if not endpoint:
+        return
+
+    # Match Azure OpenAI or Cognitive Services URLs and strip any path after the domain
+    # Handles both *.openai.azure.com and *.cognitiveservices.azure.com
+    match = re.match(
+        r"(https?://[^/]+\.(?:openai|cognitiveservices)\.azure\.com)/?.*",
+        endpoint,
+        re.IGNORECASE,
+    )
+    if match:
+        clean_endpoint = match.group(1) + "/"
+        if clean_endpoint != endpoint:
+            logger.warning(
+                "AZURE_OPENAI_ENDPOINT contained extra path components. Cleaned URL from '%s' to '%s'",
+                endpoint,
+                clean_endpoint,
+            )
+            os.environ["AZURE_OPENAI_ENDPOINT"] = clean_endpoint
 
 
 @dataclass
@@ -77,6 +112,9 @@ def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureCh
         tuple[AzureChatOpenAI, str]: A tuple containing the language model
         and a string to identify the model used to generate
     """
+    # Clean up the endpoint URL if it has extra path components
+    _clean_azure_endpoint()
+
     model = available_models.get(model_name)
     if not model:
         raise ValueError(f"Model {model_name} not found")
