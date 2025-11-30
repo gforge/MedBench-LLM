@@ -1,5 +1,15 @@
 {
     "flake8.args": [
         "--config-toml=./pyproject.toml"
-    ]
+    ],
+    "python.defaultInterpreterPath": ".venv/bin/python",
+    "notebook.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        },
+    },
+    "isort.args": ["--profile", "black"],
+    "sonarlint.analysisExcludesStandalone": "**/.vscode/extensions/**"
 }
