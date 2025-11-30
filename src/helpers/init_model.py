@@ -81,11 +81,11 @@ def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureCh
     if not model:
         raise ValueError(f"Model {model_name} not found")
 
-    client_kwargs: dict[str, Any] = dict(
-        deployment_name=model.deployment,
-        model_name=model.name,
-        temperature=temperature,
-    )
+    client_kwargs: dict[str, Any] = {
+        "deployment_name": model.deployment,
+        "model_name": model.name,
+        "temperature": temperature,
+    }
     if model.api_version:
         client_kwargs["api_version"] = model.api_version
 

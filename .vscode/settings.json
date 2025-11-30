@@ -11,4 +11,5 @@
         },
     },
     "isort.args": ["--profile", "black"],
+    "sonarlint.analysisExcludesStandalone": "**/.vscode/extensions/**"
 }
