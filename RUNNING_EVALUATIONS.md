@@ -34,7 +34,7 @@ uv run python run_evaluation.py \
 uv run python run_evaluation.py \
     --specialty <specialty> \      # Medical specialty filter
     --language <language> \         # Language filter (English, Swedish, original)
-    --model <model> \               # LLM model (gpt-4o-mini, gpt-4-turbo, etc.)
+    --model <model> \               # LLM model (gpt-5.1-chat, etc.)
     --temperature <temp> \          # Temperature (0.0 = deterministic)
     --approach <approach> \         # Approach (basic, reflection, hierarchical)
     --rate-limit <seconds>          # Seconds between API calls
@@ -48,7 +48,7 @@ uv run python run_evaluation.py \
     --specialty Orthopaedics \
     --language Swedish \
     --approach reflection \
-    --model gpt-4o-mini
+    --model gpt-5.1-chat
 ```
 
 **All Surgery Cases (Basic):**

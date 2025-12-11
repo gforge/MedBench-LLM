@@ -67,29 +67,11 @@ class ModelDefinition:
 
 
 AvailableModels = Literal[
-    "gpt-35",
-    "gpt-4o-mini",
-    "gpt-4-turbo",
     "gpt-5-mini",
     "gpt-5.1-chat",
 ]
 
 available_models: dict[AvailableModels, ModelDefinition] = {
-    "gpt-35": ModelDefinition(
-        deployment="gpt_35_16k",
-        name="gpt-35-turbo-16k",
-        version="0613",
-    ),
-    "gpt-4o-mini": ModelDefinition(
-        deployment="gpt-4o-mini",
-        name="gpt-4o-mini",
-        version="2024-07-18",
-    ),
-    "gpt-4-turbo": ModelDefinition(
-        deployment="gpt-4-turbo",
-        name="gpt-4",
-        version="turbo-2024-04-09",
-    ),
     "gpt-5-mini": ModelDefinition(
         deployment="gpt-5-mini",
         name="gpt-5-mini",
@@ -138,9 +120,6 @@ def count_tokens(text: str, model_name: AvailableModels) -> int:
 
     # Map logical model names to their tokenizer encodings
     model_to_encoding = {
-        "gpt-35": "cl100k_base",
-        "gpt-4o-mini": "o200k_base",
-        "gpt-4-turbo": "cl100k_base",
         "gpt-5-mini": "o200k_base",
         "gpt-5.1-chat": "o200k_base",
     }
