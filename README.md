@@ -54,9 +54,9 @@ uv run python src/run_evaluation.py
 
 # Customize the evaluation
 uv run python src/run_evaluation.py \
-    --specialty Surgery \
+    --specialty Orthopaedics \
     --language Swedish \
-    --model gpt-5.1-chat \
+    --model gpt-5.2 \
     --approach basic
 ```
 
@@ -66,7 +66,7 @@ uv run python src/run_evaluation.py \
 uv run python run_evaluation.py \
     --specialty Orthopaedics \
     --language English \
-    --model gpt-5.1-chat \
+    --model gpt-5.2 \
     --approach reflection
 ```
 

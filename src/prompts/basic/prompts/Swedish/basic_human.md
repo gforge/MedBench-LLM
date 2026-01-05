@@ -18,15 +18,15 @@ Lista sekundära diagnoser med ICD-10-koder
 ## Åtgärdskoder
 Punktlista med KVÅ-kod följt av åtgärdsbeskrivning, t.ex. NFJ59 Osteosyntes med märgspik
 
-## Inskrivningsorsak
+## Intagningsorsak
 Kort beskrivning av varför patienten lades in
 
-## Medicinsk historia
+## Anamnes
 Inkludera endast historia relevant för aktuell inläggning
 
 ## Vårdförlopp
 
-Var koncis och fokusera på att det sak vara lättläst för en läkare med följande innehåll:
+Var koncis och fokusera på att det sak vara lättläst för en läkare med följande innehåll (Skriv högst 3–5 meningar per punkt nedan):
 - Vad hände under vistelsen
 - Viktiga förändringar i patientens tillstånd
 - Behandlingsframsteg och viktiga fynd
@@ -35,7 +35,7 @@ Var koncis och fokusera på att det sak vara lättläst för en läkare med föl
 
 *Exempel: "Patienten utvecklade feber efter operationen, som nådde 38,4°C dag 2. CRP-nivåerna ökade till ett maximum av 312 mg/L tre dagar efter operation, och minskade sedan gradvis utan antibiotikabehandling. Detta tolkades som en normal postoperativ inflammatorisk reaktion. Patienten skrevs ut fem dagar efter operationen till ordinarie boende."*
 
-## Läkemedel
+## Läkemedelsförändringar
 
 **Nya mediciner:**
 - Namn, dos, frekvens (skriv "två gånger dagligen" inte "1x2", "tre gånger dagligen" inte "1+1+1")
@@ -44,7 +44,7 @@ Var koncis och fokusera på att det sak vara lättläst för en läkare med föl
 - Lista upphörda mediciner
 
 **Ändrade mediciner:**
-- Notera dosändringar
+- Notera dosändringar, Namn, dos, frekvens (skriv "två gånger dagligen" inte "1x2", "tre gånger dagligen" inte "1+1+1")
 
 *Hoppa över tillfälliga mediciner som upphört vid utskrivning (t.ex. IV-antibiotika, perioperativa mediciner)*
 
