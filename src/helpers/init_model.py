@@ -69,6 +69,7 @@ class ModelDefinition:
 AvailableModels = Literal[
     "gpt-5-mini",
     "gpt-5.1-chat",
+    "gpt-5.2",
 ]
 
 available_models: dict[AvailableModels, ModelDefinition] = {
@@ -81,6 +82,12 @@ available_models: dict[AvailableModels, ModelDefinition] = {
         deployment="gpt-5.1",
         name="gpt-5.1",
         version="2025-11-13",
+        api_version="2024-12-01-preview",
+    ),
+    "gpt-5.2": ModelDefinition(
+        deployment="gpt-5.2",
+        name="gpt-5.2",
+        version="2025-12-11",
         api_version="2024-12-01-preview",
     ),
 }
@@ -122,6 +129,7 @@ def count_tokens(text: str, model_name: AvailableModels) -> int:
     model_to_encoding = {
         "gpt-5-mini": "o200k_base",
         "gpt-5.1-chat": "o200k_base",
+        "gpt-5.2": "o200k_base",
     }
     encoding_name = model_to_encoding.get(model_name)
     if not encoding_name:
