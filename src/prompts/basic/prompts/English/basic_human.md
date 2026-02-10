@@ -1,61 +1,54 @@
-## Task
+# Assignment
+
 Create a discharge summary from the clinical notes below:
 
 ```
 {notes}
 ```
 
-## Required Format
+Follow structure below:
 
-### Main Diagnosis
+## Primary Diagnosis
 Primary diagnosis with ICD-10 code
-*Example: Primary Knee Osteoarthritis (M17.1)*
 
-### Secondary Diagnosis
+*Example: Primary knee osteoarthritis (M17.1)*
+
+## Secondary Diagnoses
 List secondary diagnoses with ICD-10 codes
 
-### Procedures
-Bullet list with:
-- Procedure name, date, surgeon name
+## Procedure Codes
+Bullet list with KVÅ code followed by procedure description, e.g. NFJ59 Osteosynthesis with intramedullary nail
 
-### Reason for Admission
-Brief description of why patient was admitted
+## Reason for Admission
+State the established injury/diagnosis that prompted admission in a few words
 
-### Medical History
-Include only history relevant to current admission
+## Medical History
+Include only history relevant to the current admission
 
-### Social History
-Include only details affecting current care or discharge planning
-
-### Hospital Course
-Write 3 paragraphs maximum (3-5 sentences each):
+## Hospital Course
+Be concise and focus on making it easy to read for a physician, including:
 - What happened during the stay
-- Changes in patient condition
-- Treatment milestones and key findings
+- Important changes in the patient’s condition
+- Treatment progress and key findings
 - End with discharge destination
+- Explain in continuous prose
 
-*Example: "Patient developed postoperative fever, peaking at 38.4°C on day 2. CRP levels increased to a maximum of 312 mg/L on postoperative day 3, then gradually decreased without antibiotic administration. This was interpreted as a normal postoperative inflammatory response. The patient was discharged home on postoperative day 5."*
+*Example: “The patient developed fever after surgery, reaching 38.4°C on postoperative day 2. CRP levels increased to a maximum of 312 mg/L three days after surgery and then gradually declined without antibiotic treatment. This was interpreted as a normal postoperative inflammatory response. The patient was discharged five days after surgery to their usual residence.” *
 
-### Medication Changes
+## Medications
 **New medications:**
-- Name, dose, frequency (write "twice daily" not "1x2", "thrice daily" not "1+1+1")
+- Name, dose, frequency (write “twice daily” rather than “1x2,” “three times daily” rather than “1+1+1”)
 
 **Discontinued medications:**
-- List medications stopped
+- List stopped medications
 
 **Modified medications:**
-- Note dosage changes
+- Note dose changes
 
-*Skip temporary medications stopped at discharge (e.g., IV antibiotics, perioperative medications)*
+*Omit temporary medications that have ended at discharge (e.g., IV antibiotics, perioperative medications)*
 
-### Plan
-- Follow-up appointments (include specific dates if available)
-- Specific instructions for patient
-- Any pending tests or studies
-
----
-
-## Quick Reference
-- **Max length:** Hospital Course = 3 paragraphs
-- **Medication format:** "thrice daily" not "1+1+1", "in the evening" not "0+0+1"
-- **Missing info:** Write "Not reported"
+### Follow-up Plan
+- Follow-up visits (include specific dates if available)
+- Specific instructions for the patient
+- Any pending investigations or studies
+- Explain in continuous prose
