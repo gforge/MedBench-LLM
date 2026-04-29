@@ -181,6 +181,21 @@ uv run flake8 src
 uv run pylint src
 ```
 
+### Adding New Models
+
+When adding a new model, update all of the following in `src/helpers/init_model.py`:
+
+1. Add the model key to `AvailableModels`.
+2. Add a `ModelDefinition` entry to `available_models`.
+3. Set `tokenizer_encoding` for that model (for GPT-5 variants this is currently `o200k_base`).
+
+The CLI performs a model preflight check before processing cases and validates that:
+- The model exists in `available_models`.
+- `tokenizer_encoding` is configured.
+- The tokenizer encoding is available in `tiktoken`.
+
+If any of these checks fail, evaluation stops before case processing starts.
+
 ## Contributing
 
 We welcome contributions from the community. Please refer to our contribution guidelines for more information.
