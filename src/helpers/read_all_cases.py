@@ -76,6 +76,8 @@ def read_all_cases(
         language_text = ", ".join(filter_languages or [])
         raise ValueError(f"No cases found for language selection '{language_text}'")
 
+    parsed.sort(key=lambda r: (r[1], int(re.search(r"\d+", r[2]).group()), r[3]))
+
     raw_ids = [record[0] for record in parsed]
 
     return {

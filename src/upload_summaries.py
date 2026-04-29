@@ -78,7 +78,7 @@ def parse_summary_filename(path: Path) -> tuple[str, str, str] | None:
     name = path.stem  # strip .txt
     if not name.startswith("Summary_4_"):
         return None
-    rest = name[len("Summary_4_"):]
+    rest = name[len("Summary_4_") :]
     parts = rest.split("@")
     if len(parts) < 3:
         return None
