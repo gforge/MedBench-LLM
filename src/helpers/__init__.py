@@ -1,7 +1,7 @@
 from .case import Case
 from .config import EvaluationConfig, parse_args
 from .evaluator import CaseEvaluator
-from .init_model import count_tokens, init_model
+from .init_model import count_tokens, init_model, validate_model_setup
 from .lab_tests import LabTest
 from .medications import Medication
 from .note_section import NoteSection

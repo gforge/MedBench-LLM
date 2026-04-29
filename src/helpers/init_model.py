@@ -52,6 +52,7 @@ class ModelDefinition:
     deployment: str
     name: str
     version: str
+    tokenizer_encoding: str
     api_version: str | None = None
 
     def get_id(self) -> str:
@@ -70,6 +71,7 @@ AvailableModels = Literal[
     "gpt-5-mini",
     "gpt-5.1-chat",
     "gpt-5.2",
+    "gpt-5.5",
 ]
 
 available_models: dict[AvailableModels, ModelDefinition] = {
@@ -77,20 +79,62 @@ available_models: dict[AvailableModels, ModelDefinition] = {
         deployment="gpt-5-mini",
         name="gpt-5-mini",
         version="2025-08-07",
+        tokenizer_encoding="o200k_base",
     ),
     "gpt-5.1-chat": ModelDefinition(
         deployment="gpt-5.1",
         name="gpt-5.1",
         version="2025-11-13",
+        tokenizer_encoding="o200k_base",
         api_version="2024-12-01-preview",
     ),
     "gpt-5.2": ModelDefinition(
         deployment="gpt-5.2",
         name="gpt-5.2",
         version="2025-12-11",
+        tokenizer_encoding="o200k_base",
+        api_version="2024-12-01-preview",
+    ),
+    "gpt-5.5": ModelDefinition(
+        deployment="gpt-5.5",
+        name="gpt-5.5",
+        version="2026-04-24",
+        tokenizer_encoding="o200k_base",
         api_version="2024-12-01-preview",
     ),
 }
+
+
+def get_model_definition(model_name: AvailableModels) -> ModelDefinition:
+    """Fetch model definition and fail with a clear message if missing."""
+    model = available_models.get(model_name)
+    if not model:
+        raise ValueError(f"Model {model_name} not found")
+    return model
+
+
+def validate_model_setup(model_name: AvailableModels) -> str:
+    """Validate model and tokenizer configuration before processing cases.
+
+    Returns:
+        The tokenizer encoding name configured for the model.
+    """
+    model = get_model_definition(model_name)
+    if not model.tokenizer_encoding:
+        raise ValueError(
+            f"Model {model_name} is missing tokenizer_encoding. "
+            "Add tokenizer_encoding to available_models in src/helpers/init_model.py and update README model docs."
+        )
+
+    try:
+        tiktoken.get_encoding(model.tokenizer_encoding)
+    except Exception as exc:
+        raise ValueError(
+            f"Tokenizer encoding '{model.tokenizer_encoding}' for model {model_name} is not available. "
+            "Update tokenizer_encoding in src/helpers/init_model.py before running evaluations."
+        ) from exc
+
+    return model.tokenizer_encoding
 
 
 def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureChatOpenAI, str]:
@@ -104,9 +148,7 @@ def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureCh
     # Clean up the endpoint URL if it has extra path components
     _clean_azure_endpoint()
 
-    model = available_models.get(model_name)
-    if not model:
-        raise ValueError(f"Model {model_name} not found")
+    model = get_model_definition(model_name)
 
     client_kwargs: dict[str, Any] = {
         "deployment_name": model.deployment,
@@ -125,16 +167,14 @@ def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureCh
 def count_tokens(text: str, model_name: AvailableModels) -> int:
     """Count the number of tokens in the text for a specific model."""
 
-    # Map logical model names to their tokenizer encodings
-    model_to_encoding = {
-        "gpt-5-mini": "o200k_base",
-        "gpt-5.1-chat": "o200k_base",
-        "gpt-5.2": "o200k_base",
-    }
-    encoding_name = model_to_encoding.get(model_name)
-    if not encoding_name:
-        raise ValueError(f"Encoding not found for model {model_name}")
-    encoding = tiktoken.get_encoding(encoding_name)
+    model = get_model_definition(model_name)
+    if not model.tokenizer_encoding:
+        raise ValueError(
+            f"Encoding not found for model {model_name}. "
+            "Set tokenizer_encoding in src/helpers/init_model.py available_models."
+        )
+
+    encoding = tiktoken.get_encoding(model.tokenizer_encoding)
 
     tokens = encoding.encode(text)
     return len(tokens)

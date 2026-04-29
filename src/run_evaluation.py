@@ -6,7 +6,15 @@ import logging
 from dotenv import load_dotenv
 from langchain_core.globals import set_verbose
 
-from helpers import CaseEvaluator, EvaluationConfig, SummarizeFn, init_model, parse_args, read_all_cases
+from helpers import (
+    CaseEvaluator,
+    EvaluationConfig,
+    SummarizeFn,
+    init_model,
+    parse_args,
+    read_all_cases,
+    validate_model_setup,
+)
 from prompts.agentic.reflection import summarize as reflection_summarize
 from prompts.basic.basic import summarize as basic_summarize
 
@@ -60,6 +68,14 @@ def main():
     logging.info("  Model: %s", config.model_name)
     logging.info("  Temperature: %.1f", config.temperature)
     logging.info("  Approach: %s", config.approach)
+
+    # Preflight model/tokenizer setup before any case processing.
+    tokenizer_encoding = validate_model_setup(config.model_name)
+    logging.info(
+        "Model preflight OK: %s uses tokenizer %s",
+        config.model_name,
+        tokenizer_encoding,
+    )
 
     # Validate data directory exists
     if not config.data_dir.exists():
