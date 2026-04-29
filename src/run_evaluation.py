@@ -52,7 +52,11 @@ def main():
 
     logging.info("Starting evaluation with configuration:")
     logging.info("  Specialty: %s", config.specialty)
-    logging.info("  Language: %s", config.language)
+    logging.info("  Languages: %s", ", ".join(config.languages))
+    logging.info(
+        "  Require complete language set: %s",
+        "yes" if config.require_complete_language_set else "no",
+    )
     logging.info("  Model: %s", config.model_name)
     logging.info("  Temperature: %.1f", config.temperature)
     logging.info("  Approach: %s", config.approach)
@@ -69,7 +73,8 @@ def main():
     case_dict = read_all_cases(
         base_dir=config.data_dir,
         filter_specialty=config.specialty,
-        filter_language=config.language,
+        filter_languages=config.languages,
+        require_all_languages_for_case=config.require_complete_language_set,
     )
     logging.info("Loaded %d cases", len(case_dict))
 

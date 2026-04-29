@@ -6,7 +6,10 @@ This document describes how to run discharge summary evaluations with different 
 
 ### Basic Approach (Single-Shot)
 ```bash
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py
+
+# Or provide flags explicitly
+uv run python src/run_evaluation.py \
     --specialty Orthopaedics \
     --language English \
     --approach basic
@@ -14,7 +17,7 @@ uv run python run_evaluation.py \
 
 ### Reflection Approach (Agentic with Self-Critique)
 ```bash
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py \
     --specialty Orthopaedics \
     --language English \
     --approach reflection
@@ -26,34 +29,45 @@ uv run python run_evaluation.py \
 |----------|-------------|-----------|----------|
 | `basic` | Single-shot generation | 1 per case | Fast, simple cases |
 | `reflection` | Iterative with critic & refinement | ~3-7 per case | Quality improvement, research |
-| `hierarchical` | Multi-agent with planning | TBD | Complex cases (future) |
 
 ## Command-Line Options
 
 ```bash
-uv run python run_evaluation.py \
-    --specialty <specialty> \      # Medical specialty filter
-    --language <language> \         # Language filter (English, Swedish, original)
-    --model <model> \               # LLM model (gpt-5.1-chat, etc.)
-    --temperature <temp> \          # Temperature (0.0 = deterministic)
-    --approach <approach> \         # Approach (basic, reflection, hierarchical)
-    --rate-limit <seconds>          # Seconds between API calls
+uv run python src/run_evaluation.py \
+  --specialty <specialty> \      # Medical specialty filter
+  --language <language> \        # One language, comma-separated languages, or all
+  --model <model> \              # LLM model from helpers.init_model.available_models
+  --temperature <temp> \         # Temperature (0.0 = deterministic)
+  --approach <approach> \        # Approach (basic, reflection)
+  --require-complete-language-set <yes|no|auto> \  # Keep only case IDs present in all selected languages
+  --rate-limit <seconds>          # Seconds between API calls
 ```
+
+If `--specialty`, `--language`, `--model`, or `--approach` are omitted, the CLI prompts you to choose from the currently available options. Specialty and language prompts are derived from files in `data/processed/merged/`, language options show `original` first, and specialty counts are shown as unique cases.
 
 ### Examples
 
 **Swedish Orthopedics with Reflection:**
 ```bash
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py \
     --specialty Orthopaedics \
     --language Swedish \
     --approach reflection \
     --model gpt-5.1-chat
 ```
 
+**Compare two languages on paired cases only:**
+```bash
+uv run python src/run_evaluation.py \
+  --specialty Medicine \
+  --language Swedish,English \
+  --require-complete-language-set yes \
+  --approach basic
+```
+
 **All Surgery Cases (Basic):**
 ```bash
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py \
     --specialty Surgery \
     --language original \
     --approach basic \
@@ -80,7 +94,7 @@ All approaches save results to: `data/output/<specialty>/`
 ```json
 {
   "approach": "reflection",
-  "model": "gpt-4o-mini_2024-07-18",
+  "model": "gpt-5.2_2025-12-11",
   "total_cases": 10,
   "successful_cases": 10,
   "failed_cases": 0,
@@ -113,13 +127,13 @@ To compare different approaches, run them separately and analyze the metadata:
 
 ```bash
 # Run basic
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py \
     --specialty Orthopaedics \
     --language English \
     --approach basic
 
 # Run reflection
-uv run python run_evaluation.py \
+uv run python src/run_evaluation.py \
     --specialty Orthopaedics \
     --language English \
     --approach reflection

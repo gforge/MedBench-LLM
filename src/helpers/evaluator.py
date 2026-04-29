@@ -2,6 +2,7 @@
 
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
@@ -11,7 +12,7 @@ from pydantic import BaseModel
 from tqdm import tqdm
 
 from .config import EvaluationConfig
-from .init_model import count_tokens
+from .init_model import available_models, count_tokens
 from .rate_limiter import RateLimiter
 from .read_all_cases import CaseDescAndData
 from .strip_delimeters import strip_delimeters
@@ -22,7 +23,10 @@ class CaseMetadata(BaseModel):
     """Typed metadata record for each processed case."""
 
     case_id: str
+    language: str
     approach: str
+    started_at_utc: str
+    completed_at_utc: str
     latency_seconds: float
     input_tokens: int
     output_tokens: int
@@ -73,6 +77,8 @@ class CaseEvaluator:
 
         # Track metadata across all cases
         self.metadata_log: List[CaseMetadata] = []
+        self.run_started_at_utc: str | None = None
+        self.run_completed_at_utc: str | None = None
         self.successful_cases = 0
         self.failed_cases = 0
 
@@ -108,6 +114,7 @@ class CaseEvaluator:
             # Track time and tokens
             import time
 
+            started_at = datetime.now(timezone.utc)
             start_time = time.time()
 
             # Generate summary using unified interface
@@ -117,10 +124,15 @@ class CaseEvaluator:
                 case.object,
             )
 
+            completed_at = datetime.now(timezone.utc)
+
             # Build metadata from result
             metadata = CaseMetadata(
                 case_id=case.case_id,
+                language=case.language,
                 approach=self.config.approach,
+                started_at_utc=started_at.isoformat(),
+                completed_at_utc=completed_at.isoformat(),
                 latency_seconds=time.time() - start_time,
                 input_tokens=count_tokens(case.text, self.config.model_name),
                 output_tokens=count_tokens(result.summary, self.config.model_name),
@@ -190,6 +202,7 @@ class CaseEvaluator:
             cases: Dictionary of case_id to case data
         """
         self.total_cases = len(cases)
+        self.run_started_at_utc = datetime.now(timezone.utc).isoformat()
         self.logger.info("Starting evaluation of %d cases", self.total_cases)
 
         # Create output directory if needed
@@ -218,8 +231,8 @@ class CaseEvaluator:
             self.logger.warning("Warning: %d cases failed. Check logs for details.", self.failed_cases)
 
         # Save metadata summary
-        if self.metadata_log:
-            self._save_metadata_summary()
+        self.run_completed_at_utc = datetime.now(timezone.utc).isoformat()
+        self._save_metadata_summary()
 
     def _save_metadata_summary(self) -> None:
         """Save aggregated metadata to JSON file."""
@@ -229,10 +242,28 @@ class CaseEvaluator:
         total_tokens = sum(m.total_tokens for m in self.metadata_log)
         total_latency = sum(m.latency_seconds for m in self.metadata_log)
         avg_latency = total_latency / len(self.metadata_log) if self.metadata_log else 0
+        model_definition = available_models.get(self.config.model_name)
+
+        model_details = {
+            "selection_name": self.config.model_name,
+            "deployment": model_definition.deployment if model_definition else None,
+            "name": model_definition.name if model_definition else None,
+            "version": model_definition.version if model_definition else None,
+            "api_version": model_definition.api_version if model_definition else None,
+            "resolved_model_id": self.model_id,
+        }
 
         summary = {
+            "run_started_at_utc": self.run_started_at_utc,
+            "run_completed_at_utc": self.run_completed_at_utc,
             "approach": self.config.approach,
             "model": self.model_id,
+            "model_details": model_details,
+            "specialty": self.config.specialty,
+            "languages": self.config.languages,
+            "require_complete_language_set": self.config.require_complete_language_set,
+            "temperature": self.config.temperature,
+            "rate_limit_seconds": self.config.rate_limit_seconds,
             "total_cases": self.total_cases,
             "successful_cases": self.successful_cases,
             "failed_cases": self.failed_cases,
