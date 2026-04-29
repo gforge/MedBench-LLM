@@ -6,14 +6,13 @@ Skapa en utskrivningsanteckning från de kliniska anteckningarna nedan:
 {notes}
 ```
 
-Följ nedan struktur:
+Följ nedan struktur
 
 ## Huvuddiagnos
 Primär diagnos med ICD-10-kod
-
 *Exempel: Primär knäartros (M17.1)*
 
-## Bidiagnos
+## Bidiagnoser
 Lista sekundära diagnoser med ICD-10-koder
 
 ## Åtgärdskoder
