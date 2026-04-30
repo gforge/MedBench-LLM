@@ -14,11 +14,14 @@ import argparse
 import getpass
 import json
 import os
+import sys
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
+
+from dotenv import load_dotenv
 
 UPLOAD_MUTATION = """
 mutation UploadSummaries($summaries: [SummaryInput!]!) {
@@ -148,8 +151,10 @@ def _prompt_for_multi_choice(
     if not options:
         return []
 
-    print(f"\nAvailable {label} options:")
-    print("0. all")
+    total_count = _sum_description_counts(options, descriptions)
+    total_suffix = f" ({_format_count(total_count, 'summary', 'summaries')})" if total_count is not None else ""
+    print(f"\nAvailable {label} options{total_suffix}:")
+    print(f"0. all{total_suffix}")
     for index, option in enumerate(options, start=1):
         description = descriptions.get(option) if descriptions else None
         suffix = f" ({description})" if description else ""
@@ -212,6 +217,19 @@ def _count_by(values: Iterable[str]) -> dict[str, int]:
     for value in values:
         counts[value] = counts.get(value, 0) + 1
     return counts
+
+
+def _sum_description_counts(options: Sequence[str], descriptions: dict[str, str] | None) -> int | None:
+    if not descriptions:
+        return None
+    total = 0
+    for option in options:
+        description = descriptions.get(option, "")
+        count_text = description.split(" ", 1)[0]
+        if not count_text.isdigit():
+            return None
+        total += int(count_text)
+    return total
 
 
 def _discover_specialties(output_base: Path) -> dict[str, int]:
@@ -365,7 +383,31 @@ def upload_in_batches(url: str, token: str, summaries: list[dict], batch_size: i
     return uploaded
 
 
+def resolve_token(args: argparse.Namespace, parser: argparse.ArgumentParser) -> str:
+    """Resolve authentication before upload selection starts."""
+    if args.token:
+        return args.token
+
+    if not args.email:
+        if not sys.stdin.isatty():
+            parser.error("Provide --token or --email (or set MEDBENCH_TOKEN / MEDBENCH_EMAIL env vars)")
+        args.email = input("Email for MedBench login: ").strip()
+
+    if not args.email:
+        parser.error("Provide --token or --email (or set MEDBENCH_TOKEN / MEDBENCH_EMAIL env vars)")
+
+    if not args.password:
+        args.password = getpass.getpass(f"Password for {args.email}: ")
+
+    print(f"Logging in as {args.email}...")
+    token = get_token(args.url, args.email, args.password)
+    print("Login successful.")
+    return token
+
+
 def main() -> None:
+    load_dotenv()
+
     parser = argparse.ArgumentParser(description="Upload LLM summaries to MedBench Platform")
     parser.add_argument(
         "--url",
@@ -414,6 +456,16 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=50)
     args = parser.parse_args()
 
+    alldata_path = Path(args.alldata)
+    if not alldata_path.exists():
+        parser.error(f"allData.json not found at {alldata_path}. Run download_platform_charts.py first.")
+
+    print(f"Loading chart index from {alldata_path}...")
+    chart_index = build_chart_index(alldata_path)
+    print(f"Loaded {len(chart_index)} chart translations.")
+
+    token = resolve_token(args, parser)
+
     output_base = Path(__file__).parent.parent / "data" / "output"
     try:
         selected_files = resolve_upload_selection(
@@ -432,24 +484,6 @@ def main() -> None:
         return
 
     print_selection_preview(selected_files)
-
-    token = args.token
-    if not token:
-        if not args.email:
-            parser.error("Provide --token or --email (or set MEDBENCH_TOKEN / MEDBENCH_EMAIL env vars)")
-        if not args.password:
-            args.password = getpass.getpass(f"Password for {args.email}: ")
-        print(f"Logging in as {args.email}...")
-        token = get_token(args.url, args.email, args.password)
-        print("Login successful.")
-
-    alldata_path = Path(args.alldata)
-    if not alldata_path.exists():
-        parser.error(f"allData.json not found at {alldata_path}. Run download_platform_charts.py first.")
-
-    print(f"Loading chart index from {alldata_path}...")
-    chart_index = build_chart_index(alldata_path)
-    print(f"Loaded {len(chart_index)} chart translations.")
 
     summaries_by_specialty = collect_summaries(selected_files, chart_index)
 
