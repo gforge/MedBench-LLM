@@ -26,7 +26,7 @@ def read_markdown_file(path: Path) -> str:
         raise FileNotFoundError(f"{str(e)}: {msg}") from e
 
 
-languages_available = ["original", "Swedish"]
+languages_available = ["original", "Swedish", "Icelandic"]
 
 
 def read_json_file(path: Path) -> Case:

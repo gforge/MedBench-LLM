@@ -162,4 +162,7 @@ class NoteSection:
         if self.language == "Swedish":
             return bool(self.type.startswith("Daganteckning"))
 
+        if self.language == "Icelandic":
+            return bool(self.type.startswith("Dagáll"))
+
         raise ValueError(f"Unsupported language: {self.language}")

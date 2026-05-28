@@ -41,6 +41,28 @@ mutation Login($email: String!, $password: String!) {
 }
 """
 
+CHART_SUMMARIES_QUERY = """
+query ChartSummaries($id: ID!) {
+  chart(id: $id) {
+    id
+    summaries {
+      id
+      chartTranslationId
+      generatedBy
+      generatorType
+      createdBy
+      createdAt
+    }
+  }
+}
+"""
+
+DELETE_SUMMARY_MUTATION = """
+mutation DeleteSummary($id: ID!) {
+  deleteSummary(id: $id)
+}
+"""
+
 
 @dataclass(frozen=True)
 class SummaryFile:
@@ -53,6 +75,14 @@ class SummaryFile:
     generated_by: str
     model_used: str
     prompt_type: str
+
+
+@dataclass(frozen=True)
+class DuplicateSummary:
+    """A local upload payload that already exists on the server."""
+
+    local_summary: dict
+    server_summary: dict
 
 
 def graphql_request(url: str, query: str, variables: dict, token: str | None = None) -> dict:
@@ -373,6 +403,146 @@ def collect_summaries(selected_files: Sequence[SummaryFile], chart_index: dict) 
     return summaries_by_specialty
 
 
+def _summary_key(summary: dict) -> tuple[str, str]:
+    return summary["chartTranslationId"], summary["generatedBy"]
+
+
+def _find_local_duplicate_keys(summaries_by_specialty: dict[str, list[dict]]) -> list[tuple[str, str]]:
+    seen: set[tuple[str, str]] = set()
+    duplicates: set[tuple[str, str]] = set()
+    for summaries in summaries_by_specialty.values():
+        for summary in summaries:
+            key = _summary_key(summary)
+            if key in seen:
+                duplicates.add(key)
+            seen.add(key)
+    return sorted(duplicates)
+
+
+def _fetch_existing_summary_index(
+    url: str, token: str, chart_translation_ids: Sequence[str]
+) -> dict[tuple[str, str], dict]:
+    existing: dict[tuple[str, str], dict] = {}
+    for chart_id in sorted(set(chart_translation_ids)):
+        result = graphql_request(url, CHART_SUMMARIES_QUERY, {"id": chart_id}, token=token)
+        for summary in result["chart"]["summaries"]:
+            if summary.get("generatorType") != "LLM":
+                continue
+            existing[(summary["chartTranslationId"], summary["generatedBy"])] = summary
+    return existing
+
+
+def _find_server_duplicates(
+    summaries_by_specialty: dict[str, list[dict]], existing_summary_index: dict[tuple[str, str], dict]
+) -> list[DuplicateSummary]:
+    duplicates: list[DuplicateSummary] = []
+    for summaries in summaries_by_specialty.values():
+        for summary in summaries:
+            server_summary = existing_summary_index.get(_summary_key(summary))
+            if server_summary:
+                duplicates.append(DuplicateSummary(local_summary=summary, server_summary=server_summary))
+    return duplicates
+
+
+def print_duplicate_preview(duplicates: Sequence[DuplicateSummary], *, max_examples: int = 5) -> None:
+    print(f"\nFound {len(duplicates)} already-uploaded summaries on the server.")
+    for duplicate in duplicates[:max_examples]:
+        server_summary = duplicate.server_summary
+        print(
+            "  "
+            f"[duplicate] chartTranslationId={server_summary['chartTranslationId']}, "
+            f"generatedBy={server_summary['generatedBy']}, id={server_summary['id']}"
+        )
+    remaining = len(duplicates) - max_examples
+    if remaining > 0:
+        print(f"  ... and {remaining} more.")
+
+
+def resolve_duplicate_action(action: str) -> str:
+    if action != "prompt":
+        return action
+    if not sys.stdin.isatty():
+        print("Duplicate action 'prompt' requested in a non-interactive shell; using 'skip'.")
+        return "skip"
+
+    options = {
+        "s": "skip",
+        "skip": "skip",
+        "a": "abort",
+        "abort": "abort",
+        "r": "replace",
+        "replace": "replace",
+    }
+    while True:
+        raw_value = input("Handle duplicates: [s]kip, [a]bort, [r]eplace? ").strip().lower()
+        if raw_value in options:
+            return options[raw_value]
+        print("Invalid duplicate action. Choose skip, abort, or replace.")
+
+
+def delete_duplicate_summaries(url: str, token: str, duplicates: Sequence[DuplicateSummary]) -> int:
+    deleted_ids: set[str] = set()
+    for duplicate in duplicates:
+        summary_id = duplicate.server_summary["id"]
+        if summary_id in deleted_ids:
+            continue
+        graphql_request(url, DELETE_SUMMARY_MUTATION, {"id": summary_id}, token=token)
+        deleted_ids.add(summary_id)
+    return len(deleted_ids)
+
+
+def filter_duplicate_summaries(
+    summaries_by_specialty: dict[str, list[dict]], duplicates: Sequence[DuplicateSummary]
+) -> dict[str, list[dict]]:
+    duplicate_keys = {_summary_key(duplicate.local_summary) for duplicate in duplicates}
+    filtered: dict[str, list[dict]] = {}
+    for specialty, summaries in summaries_by_specialty.items():
+        filtered[specialty] = [summary for summary in summaries if _summary_key(summary) not in duplicate_keys]
+    return filtered
+
+
+def preflight_duplicate_summaries(
+    url: str,
+    token: str,
+    summaries_by_specialty: dict[str, list[dict]],
+    duplicate_action: str,
+) -> dict[str, list[dict]]:
+    local_duplicates = _find_local_duplicate_keys(summaries_by_specialty)
+    if local_duplicates:
+        examples = ", ".join(
+            f"(chartTranslationId={chart_id}, generatedBy={generated_by})"
+            for chart_id, generated_by in local_duplicates[:5]
+        )
+        raise RuntimeError(f"Selected local files contain duplicate upload keys. Examples: {examples}")
+
+    chart_translation_ids = [
+        summary["chartTranslationId"] for summaries in summaries_by_specialty.values() for summary in summaries
+    ]
+    if not chart_translation_ids:
+        return summaries_by_specialty
+
+    existing_summary_index = _fetch_existing_summary_index(url, token, chart_translation_ids)
+    duplicates = _find_server_duplicates(summaries_by_specialty, existing_summary_index)
+    if not duplicates:
+        return summaries_by_specialty
+
+    print_duplicate_preview(duplicates)
+    action = resolve_duplicate_action(duplicate_action)
+    if action == "abort":
+        raise RuntimeError("Aborting because selected summaries already exist on the server.")
+    if action == "replace":
+        deleted = delete_duplicate_summaries(url, token, duplicates)
+        print(f"Deleted {deleted} already-uploaded summaries before re-upload.")
+        return summaries_by_specialty
+
+    filtered = filter_duplicate_summaries(summaries_by_specialty, duplicates)
+    skipped = sum(len(summaries) for summaries in summaries_by_specialty.values()) - sum(
+        len(summaries) for summaries in filtered.values()
+    )
+    print(f"Skipping {skipped} already-uploaded summaries.")
+    return filtered
+
+
 def upload_in_batches(url: str, token: str, summaries: list[dict], batch_size: int = 50) -> int:
     uploaded = 0
     for i in range(0, len(summaries), batch_size):
@@ -454,6 +624,15 @@ def main() -> None:
         help="Path to allData.json exported from the Platform",
     )
     parser.add_argument("--batch-size", type=int, default=50)
+    parser.add_argument(
+        "--duplicate-action",
+        choices=("skip", "abort", "replace", "prompt"),
+        default="prompt" if sys.stdin.isatty() else "skip",
+        help=(
+            "How to handle summaries already uploaded to the server. "
+            "Defaults to prompt in interactive shells and skip otherwise."
+        ),
+    )
     args = parser.parse_args()
 
     alldata_path = Path(args.alldata)
@@ -486,6 +665,15 @@ def main() -> None:
     print_selection_preview(selected_files)
 
     summaries_by_specialty = collect_summaries(selected_files, chart_index)
+    try:
+        summaries_by_specialty = preflight_duplicate_summaries(
+            args.url,
+            token,
+            summaries_by_specialty,
+            duplicate_action=args.duplicate_action,
+        )
+    except RuntimeError as e:
+        parser.error(str(e))
 
     total_uploaded = 0
     for specialty in sorted({summary.specialty for summary in selected_files}):
@@ -497,6 +685,10 @@ def main() -> None:
         n = upload_in_batches(args.url, token, summaries, batch_size=args.batch_size)
         total_uploaded += n
         print(f"[{specialty}] Done: {n} uploaded.")
+
+    if total_uploaded == 0:
+        print("\nNo new summaries to upload.")
+        return
 
     print(f"\nTotal uploaded: {total_uploaded}")
 

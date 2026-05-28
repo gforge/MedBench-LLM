@@ -75,6 +75,8 @@ class Case(RawCase):
             typename = re.compile(r"Progress")
         elif self.language == "Swedish":
             typename = re.compile(r"Daganteckning")
+        elif self.language == "Icelandic":
+            typename = re.compile(r"Dagáll")
         else:
             raise ValueError(f"Unsupported language: {self.language}")
 
@@ -93,6 +95,8 @@ class Case(RawCase):
             typename = re.compile(r"^(Operation|Surgery)")
         elif self.language == "Swedish":
             typename = re.compile(r"^(Operation|Kirurgi)")
+        elif self.language == "Icelandic":
+            typename = re.compile(r"^(Aðgerðarlýsing|Aðgerð)")
         else:
             raise ValueError(f"Unsupported language: {self.language}")
 
