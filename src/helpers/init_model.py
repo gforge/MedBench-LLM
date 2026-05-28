@@ -2,10 +2,10 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-import tiktoken
-from langchain_openai import AzureChatOpenAI
+if TYPE_CHECKING:
+    from langchain_openai import AzureChatOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +126,8 @@ def validate_model_setup(model_name: AvailableModels) -> str:
             "Add tokenizer_encoding to available_models in src/helpers/init_model.py and update README model docs."
         )
 
+    import tiktoken
+
     try:
         tiktoken.get_encoding(model.tokenizer_encoding)
     except Exception as exc:
@@ -137,7 +139,7 @@ def validate_model_setup(model_name: AvailableModels) -> str:
     return model.tokenizer_encoding
 
 
-def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureChatOpenAI, str]:
+def init_model(model_name: AvailableModels, temperature: float) -> tuple["AzureChatOpenAI", str]:
     """
     Initialize a language model for a given model name and temperature.
 
@@ -147,6 +149,8 @@ def init_model(model_name: AvailableModels, temperature: float) -> tuple[AzureCh
     """
     # Clean up the endpoint URL if it has extra path components
     _clean_azure_endpoint()
+
+    from langchain_openai import AzureChatOpenAI
 
     model = get_model_definition(model_name)
 
@@ -173,6 +177,8 @@ def count_tokens(text: str, model_name: AvailableModels) -> int:
             f"Encoding not found for model {model_name}. "
             "Set tokenizer_encoding in src/helpers/init_model.py available_models."
         )
+
+    import tiktoken
 
     encoding = tiktoken.get_encoding(model.tokenizer_encoding)
 
